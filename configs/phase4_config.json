@@ -1,0 +1,26 @@
+{
+  "risk_strategy": "adaptive_contextual_memory",
+  "semantic_weight": 0.60,
+  "rule_weight": 0.20,
+  "memory_weight": 0.20,
+  "history_window": 5,
+  "memory_decay": 0.80,
+  "risk_levels": {
+    "safe": 0.40,
+    "medium": 0.65,
+    "high": 0.80
+  },
+  "coarse_thresholds": [
+    0.20,
+    0.30,
+    0.40,
+    0.50,
+    0.60,
+    0.70,
+    0.80,
+    0.90
+  ],
+  "fine_search_enabled": true,
+  "mitigation_mode": "contextual_adaptive_refusal",
+  "seed": 42
+}

@@ -1,0 +1,30 @@
+{
+  "risk_strategy": "hybrid_risk_fusion",
+  "semantic_weight": 0.70,
+  "rule_weight": 0.30,
+  "rule_weights": {
+    "keyword_density": 0.35,
+    "actionability": 0.25,
+    "persistence": 0.20,
+    "refusal_resistance": 0.20
+  },
+  "risk_levels": {
+    "safe": 0.40,
+    "medium": 0.65,
+    "high": 0.80
+  },
+  "coarse_thresholds": [
+    0.20,
+    0.30,
+    0.40,
+    0.50,
+    0.60,
+    0.70,
+    0.75,
+    0.80,
+    0.88
+  ],
+  "fine_search_enabled": true,
+  "mitigation_mode": "adaptive_soft_refusal",
+  "seed": 42
+}

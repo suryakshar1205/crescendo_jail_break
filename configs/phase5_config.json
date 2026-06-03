@@ -1,0 +1,17 @@
+{
+  "risk_strategy": "robustness_generalization",
+  "baseline_threshold": 0.92,
+  "threshold_window": [
+    0.90,
+    0.91,
+    0.92,
+    0.93,
+    0.94
+  ],
+  "holdout_attack_count": 30,
+  "min_turns": 4,
+  "max_turns": 12,
+  "ablation_enabled": true,
+  "stress_testing_enabled": true,
+  "seed": 42
+}

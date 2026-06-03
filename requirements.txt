@@ -1,0 +1,10 @@
+torch
+transformers
+accelerate
+sentence-transformers
+pandas
+matplotlib
+numpy
+scikit-learn
+tqdm
+peft

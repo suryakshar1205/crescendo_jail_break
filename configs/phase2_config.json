@@ -1,0 +1,21 @@
+{
+  "similarity_metric": "cosine",
+  "window_size": 3,
+  "risk_strategy": "anchor_semantic_drift",
+  "weights": {
+    "anchor_drift": 0.60,
+    "local_drift": 0.25,
+    "velocity": 0.15
+  },
+  "coarse_thresholds": [
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8
+  ],
+  "fine_search_enabled": true,
+  "mitigation_mode": "soft_refusal"
+}
