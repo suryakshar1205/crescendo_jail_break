@@ -220,12 +220,7 @@ aims-dtu/
 │   ├── plots/                         # Generated visualizations
 │   ├── phase2/ ... phase5/            # Phase-specific result files
 │
-├── logs/
-│   ├── archive/                       # Archived historical execution logs
-│   └── phase2/ ... phase5/            # Active phase log directories
-│
-└── artifacts/
-    └── archive/                       # Archived experimental artifacts
+
 ```
 
 ---
