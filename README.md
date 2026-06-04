@@ -476,7 +476,6 @@ If you use this work, please cite:
 
 - **Meta AI** for the Llama-3.2-3B-Instruct model
 - **Hugging Face** for the Transformers and Sentence-Transformers libraries
-- **AIMS-DTU** for research supervision and infrastructure
 
 ---
 
