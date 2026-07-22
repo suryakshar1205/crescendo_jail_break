@@ -1,0 +1,11 @@
+{
+  "phase_name": "Phase 7 — Turn 1 Dynamic Thresholding & Calibration",
+  "base_threshold": 0.92,
+  "domain_offsets": {
+    "programming": 0.03,
+    "creative_writing": -0.02,
+    "academic_research": 0.00,
+    "general": 0.00
+  },
+  "mock_mode": true
+}

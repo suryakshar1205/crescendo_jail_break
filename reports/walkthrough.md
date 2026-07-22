@@ -23,10 +23,10 @@ graph TD
 ```
 
 ### Components
-1. **[configs/phase3_config.json](file:///c:/Users/surya/Desktop/aims-dtu/configs/phase3_config.json)**: Holds configuration parameters (`semantic_weight = 0.70`, `rule_weight = 0.30`, and sub-weights for keyword density, actionability, persistence, and refusal resistance).
-2. **[src/phase3/rule_detector.py](file:///c:/Users/surya/Desktop/aims-dtu/src/phase3/rule_detector.py)**: Case-insensitive, punctuation-safe matching of unsafe terms, actionability indicators, persuasion patterns, and cumulative history persistence.
-3. **[src/phase3/risk_fusion.py](file:///c:/Users/surya/Desktop/aims-dtu/src/phase3/risk_fusion.py)**: Fuses scores and maps them to safety mitigation tiers.
-4. **[src/phase3/phase3_benchmark.py](file:///c:/Users/surya/Desktop/aims-dtu/src/phase3/phase3_benchmark.py)**: Runs sweeps, utilizes persistent cache to speed up CPU-only evaluation, and checkpoints progress.
+1. **[configs/phase3_config.json](file:///c:/Users/surya/Desktop/crescendo_jail_break/configs/phase3_config.json)**: Holds configuration parameters (`semantic_weight = 0.70`, `rule_weight = 0.30`, and sub-weights for keyword density, actionability, persistence, and refusal resistance).
+2. **[src/phase3/rule_detector.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase3/rule_detector.py)**: Case-insensitive, punctuation-safe matching of unsafe terms, actionability indicators, persuasion patterns, and cumulative history persistence.
+3. **[src/phase3/risk_fusion.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase3/risk_fusion.py)**: Fuses scores and maps them to safety mitigation tiers.
+4. **[src/phase3/phase3_benchmark.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase3/phase3_benchmark.py)**: Runs sweeps, utilizes persistent cache to speed up CPU-only evaluation, and checkpoints progress.
 
 ### Phase 3 Key Results
 At the optimal threshold of **`0.86`** / **`0.88`**:
@@ -65,10 +65,10 @@ Phase 4 introduces a **Conversation Memory Engine** that models long-horizon con
 ```
 
 ### Components
-1. **[configs/phase4_config.json](file:///c:/Users/surya/Desktop/aims-dtu/configs/phase4_config.json)**: Hyper-parameters (`decay = 0.80`, `window = 5`, weights for memory signals).
-2. **[src/phase4/conversation_memory.py](file:///c:/Users/surya/Desktop/aims-dtu/src/phase4/conversation_memory.py)**: Tracks historical risk decay, rolling risk slope, persistence ratio, and post-refusal mitigation bypass.
-3. **[src/phase4/contextual_risk.py](file:///c:/Users/surya/Desktop/aims-dtu/src/phase4/contextual_risk.py)**: Fuses memory signals with current turn risk, applying a bypass boost.
-4. **[src/phase4/phase4_benchmark.py](file:///c:/Users/surya/Desktop/aims-dtu/src/phase4/phase4_benchmark.py)**: Orchestrates the multi-turn session benchmark.
+1. **[configs/phase4_config.json](file:///c:/Users/surya/Desktop/crescendo_jail_break/configs/phase4_config.json)**: Hyper-parameters (`decay = 0.80`, `window = 5`, weights for memory signals).
+2. **[src/phase4/conversation_memory.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase4/conversation_memory.py)**: Tracks historical risk decay, rolling risk slope, persistence ratio, and post-refusal mitigation bypass.
+3. **[src/phase4/contextual_risk.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase4/contextual_risk.py)**: Fuses memory signals with current turn risk, applying a bypass boost.
+4. **[src/phase4/phase4_benchmark.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase4/phase4_benchmark.py)**: Orchestrates the multi-turn session benchmark.
 
 ### Phase 4 Evaluation Metrics
 Across the sweeps, Phase 4 achieved perfect separability between benign and attack chats.
@@ -90,12 +90,12 @@ Phase 5 scientifically validates the generalization capability and parameter sta
 3. **Component Ablation Studies**: Systematically disabling individual defense modules to isolate their performance contribution.
 
 ### Components
-1. **[configs/phase5_config.json](file:///c:/Users/surya/Desktop/aims-dtu/configs/phase5_config.json)**: Frozen parameters (`baseline_threshold = 0.92`, `seed = 42`, and stress test boundaries).
-2. **[src/phase5/holdout_generator.py](file:///c:/Users/surya/Desktop/aims-dtu/src/phase5/holdout_generator.py)**: Generates the 30 unseen holdout attacks (`data/holdout_attacks/unseen_crescendo_attacks.json`).
-3. **[src/phase5/phase5_benchmark.py](file:///c:/Users/surya/Desktop/aims-dtu/src/phase5/phase5_benchmark.py)**: Main holdout harness evaluating the defended pipeline at $T=0.92$.
-4. **[src/phase5/threshold_stability.py](file:///c:/Users/surya/Desktop/aims-dtu/src/phase5/threshold_stability.py)**: Performs parameter stability sweeps.
-5. **[src/phase5/ablation_runner.py](file:///c:/Users/surya/Desktop/aims-dtu/src/phase5/ablation_runner.py)**: Ablation studies runner.
-6. **[src/phase5_plotter.py](file:///c:/Users/surya/Desktop/aims-dtu/src/phase5_plotter.py)**: Generates high-quality analytical graphs.
+1. **[configs/phase5_config.json](file:///c:/Users/surya/Desktop/crescendo_jail_break/configs/phase5_config.json)**: Frozen parameters (`baseline_threshold = 0.92`, `seed = 42`, and stress test boundaries).
+2. **[src/phase5/holdout_generator.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase5/holdout_generator.py)**: Generates the 30 unseen holdout attacks (`data/holdout_attacks/unseen_crescendo_attacks.json`).
+3. **[src/phase5/phase5_benchmark.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase5/phase5_benchmark.py)**: Main holdout harness evaluating the defended pipeline at $T=0.92$.
+4. **[src/phase5/threshold_stability.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase5/threshold_stability.py)**: Performs parameter stability sweeps.
+5. **[src/phase5/ablation_runner.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase5/ablation_runner.py)**: Ablation studies runner.
+6. **[src/phase5_plotter.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase5_plotter.py)**: Generates high-quality analytical graphs.
 
 ### Phase 5 Key Findings & Metrics
 * **ASR (Attack Success Rate)**: **`0.0000`** (0.0% — successfully blocked all 30 unseen attacks).
@@ -144,14 +144,50 @@ The following visual plots are located under `results/plots/`:
 
 ---
 
-## 5. Analytical Reports & Summaries
+---
+
+## 5. Phase 6 to Phase 9: Research Grade Enhancements
+
+### Phase 6: LLM-as-a-Judge Evaluation Suite
+- **Logic**: Evaluates responses using Causal classifiers (`meta-llama/Llama-Guard-3-1B`) with fallback routing to rule-based evaluators in offline or low-resourced states.
+- **Agreement**: Measures consensus rates and Cohen's Kappa score ($\kappa$) to guarantee consistency.
+- **Report**: [agreement_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase6/agreement_report.md)
+
+### Phase 7: Dynamic Threshold Calibration
+- **Logic**: Classifies Turn 1 prompt domain and applies offsets (+0.03 for Programming, -0.02 for Creative Writing) kept static for the session duration.
+- **Report**: [calibration_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase7/calibration_report.md)
+
+### Phase 8: Adaptive Adversary Simulation
+- **Logic**: Subjects the defense to stress-testing with Jittering and Semantic Smuggling attacks, validating persistence memory.
+- **Report**: [red_team_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase8/red_team_report.md)
+
+### Phase 9: Research-Grade Harness (Cross-Model, Optimizer, Solver, Auditor)
+- **Logic**: Integrates four advanced research components:
+  1. **Cross-Model**: Validates safety metrics consistency across Llama-3.2, Llama-3.1, and Mistral-7B.
+  2. **Prompt Optimizer**: Performs optimization loops over judge prompts ([src/phase9/optimize_judge_prompts.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase9/optimize_judge_prompts.py)).
+  3. **Evasion Simulator**: Solves optimal filler spacing bounds against adaptive evasion attempts ([src/phase9/simulate_adaptive_attacks.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase9/simulate_adaptive_attacks.py)).
+  4. **FPR Auditor Console**: Supports interactive & automated safety blocks audits ([src/phase9/interactive_fpr_auditor.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase9/interactive_fpr_auditor.py)).
+- **Unified Report**: [cross_model_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase9/cross_model_report.md)
+
+---
+
+## 6. Analytical Reports & Summaries
 
 Refer to the raw details and comprehensive analyses below:
 * **Phase 5 Results Data**:
-  * CSV Log: [phase5_results.csv](file:///c:/Users/surya/Desktop/aims-dtu/results/phase5/phase5_results.csv)
-  * JSON Summary: [phase5_results.json](file:///c:/Users/surya/Desktop/aims-dtu/results/phase5/phase5_results.json)
-* **Threshold Stability Sweeps CSV**: [threshold_stability.csv](file:///c:/Users/surya/Desktop/aims-dtu/results/phase5/threshold_stability.csv)
-* **Ablation Studies Results CSV**: [ablation_results.csv](file:///c:/Users/surya/Desktop/aims-dtu/results/phase5/ablation_results.csv)
-* **Qualitative Failure Analysis Report**: [failure_analysis.md](file:///c:/Users/surya/Desktop/aims-dtu/reports/phase5/failure_analysis.md)
-* **Generalization and Robustness Report**: [generalization_report.md](file:///c:/Users/surya/Desktop/aims-dtu/reports/phase5/generalization_report.md)
-* **Unified Project comparative Analysis (Phases 1-5)**: [phase5_comparative_analysis.md](file:///c:/Users/surya/Desktop/aims-dtu/reports/phase5/phase5_comparative_analysis.md)
+  * CSV Log: [phase5_results.csv](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/phase5/phase5_results.csv)
+  * JSON Summary: [phase5_results.json](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/phase5/phase5_results.json)
+* **Threshold Stability Sweeps CSV**: [threshold_stability.csv](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/phase5/threshold_stability.csv)
+* **Ablation Studies Results CSV**: [ablation_results.csv](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/phase5/ablation_results.csv)
+* **Qualitative Failure Analysis Report**: [failure_analysis.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase5/failure_analysis.md)
+* **Generalization and Robustness Report**: [generalization_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase5/generalization_report.md)
+* **Unified Project Comparative Analysis**: [phase5_comparative_analysis.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase5/phase5_comparative_analysis.md)
+* **Verification Runner**: [run_full_pipeline.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/scripts/run_full_pipeline.py)
+* **Research Roadmap to Publication**: [research_roadmap.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/research_roadmap.md)
+* **Research Execution Tools**:
+  * **Judge Prompt Optimizer**: [optimize_judge_prompts.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase9/optimize_judge_prompts.py)
+  * **Adaptive Evasion Simulator**: [simulate_adaptive_attacks.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase9/simulate_adaptive_attacks.py)
+  * **Interactive FPR Diagnostic Console**: [interactive_fpr_auditor.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/phase9/interactive_fpr_auditor.py)
+
+
+

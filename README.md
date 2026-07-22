@@ -1,5 +1,7 @@
 # Crescendo Jailbreak Detection & Adaptive Defense Framework
 
+![Crescendo Defense Banner](assets/banner.png)
+
 > **Multi-Turn Adversarial Robustness for LLM Safety — AIMS-DTU Research Project**
 >
 > A five-phase, research-grade defense pipeline against Crescendo-style jailbreak attacks on `Llama-3.2-3B-Instruct`, achieving **0.00% ASR**, **0.00% FPR**, and **100% DDR** on both seen and unseen attack datasets.
@@ -135,6 +137,8 @@ Validated the Phase 4 defense on an unseen holdout attack dataset, ran threshold
 │    Mitigation Layer     │ → Safe (pass) | Medium (clarify) | High (soft refusal)
 └─────────────────────────┘
 ```
+
+![Crescendo Defense Architecture](assets/architecture.png)
 
 ---
 

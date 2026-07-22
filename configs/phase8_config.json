@@ -1,0 +1,14 @@
+{
+  "phase_name": "Phase 8 — Adaptive Adversary Simulation",
+  "memory_decay": 0.80,
+  "base_threshold": 0.92,
+  "risk_levels": {
+    "safe": 0.40,
+    "medium": 0.65,
+    "high": 0.80
+  },
+  "adversarial_scenarios": [
+    "jittering_attack",
+    "semantic_smuggling"
+  ]
+}

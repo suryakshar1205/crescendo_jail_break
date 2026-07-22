@@ -53,6 +53,23 @@ class TestPhaseModuleImports(unittest.TestCase):
         from src.phase5.phase5_benchmark import parse_args
         self.assertTrue(callable(parse_args))
 
+    def test_phase6_benchmark_import(self):
+        from src.phase6.phase6_benchmark import run_phase6_benchmark
+        self.assertTrue(callable(run_phase6_benchmark))
+
+    def test_phase7_benchmark_import(self):
+        from src.phase7.phase7_benchmark import run_phase7_benchmark
+        self.assertTrue(callable(run_phase7_benchmark))
+
+    def test_phase8_benchmark_import(self):
+        from src.phase8.phase8_benchmark import run_phase8_benchmark
+        self.assertTrue(callable(run_phase8_benchmark))
+
+    def test_phase9_benchmark_import(self):
+        from src.phase9.phase9_benchmark import run_phase9_benchmark
+        self.assertTrue(callable(run_phase9_benchmark))
+
+
 
 class TestMockModelInterface(unittest.TestCase):
     """Tests the MockModel and MockTokenizer interface used by --mock_inference."""
@@ -111,6 +128,12 @@ class TestDefenseComponentIntegration(unittest.TestCase):
 
         self.assertGreater(signals["historical_risk"], 0.0)
         self.assertGreater(signals["trend_score"], 0.0)
+
+    def test_phase7_calibrator_integration(self):
+        from src.phase7.dynamic_threshold import DynamicThresholdCalibrator
+        calibrator = DynamicThresholdCalibrator(base_threshold=0.92)
+        self.assertIsNotNone(calibrator)
+
 
 
 if __name__ == "__main__":

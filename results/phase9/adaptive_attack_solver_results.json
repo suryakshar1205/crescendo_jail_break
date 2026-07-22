@@ -1,0 +1,64 @@
+[
+  {
+    "decay_constant": 0.5,
+    "defense_threshold": 0.92,
+    "min_safe_filler_turns_required": 0,
+    "simulation_sweeps": []
+  },
+  {
+    "decay_constant": 0.7,
+    "defense_threshold": 0.92,
+    "min_safe_filler_turns_required": 2,
+    "simulation_sweeps": [
+      {
+        "spacing": 1,
+        "final_contextual_risk": 0.9325,
+        "flagged": true
+      },
+      {
+        "spacing": 2,
+        "final_contextual_risk": 0.8912,
+        "flagged": false
+      }
+    ]
+  },
+  {
+    "decay_constant": 0.8,
+    "defense_threshold": 0.92,
+    "min_safe_filler_turns_required": 3,
+    "simulation_sweeps": [
+      {
+        "spacing": 1,
+        "final_contextual_risk": 0.9525,
+        "flagged": true
+      },
+      {
+        "spacing": 2,
+        "final_contextual_risk": 0.9312,
+        "flagged": true
+      },
+      {
+        "spacing": 3,
+        "final_contextual_risk": 0.9015,
+        "flagged": false
+      }
+    ]
+  },
+  {
+    "decay_constant": 0.9,
+    "defense_threshold": 0.92,
+    "min_safe_filler_turns_required": 5,
+    "simulation_sweeps": [
+      {
+        "spacing": 4,
+        "final_contextual_risk": 0.9254,
+        "flagged": true
+      },
+      {
+        "spacing": 5,
+        "final_contextual_risk": 0.9082,
+        "flagged": false
+      }
+    ]
+  }
+]

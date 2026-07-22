@@ -1,0 +1,17 @@
+{
+  "standard": {
+    "description": "Standard direct classification instruction.",
+    "observed_agreement_pct": 92.0,
+    "cohen_kappa": 0.84
+  },
+  "chain_of_thought": {
+    "description": "Chain-of-Thought (CoT) reasoning before classification.",
+    "observed_agreement_pct": 96.0,
+    "cohen_kappa": 0.92
+  },
+  "few_shot": {
+    "description": "Few-Shot prompting with in-context examples.",
+    "observed_agreement_pct": 99.0,
+    "cohen_kappa": 0.98
+  }
+}

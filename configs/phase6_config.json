@@ -1,0 +1,6 @@
+{
+  "phase_name": "Phase 6 — LLM-as-a-Judge Validation Suite",
+  "judge_model_id": "meta-llama/Llama-Guard-3-1B",
+  "mock_mode": true,
+  "results_to_evaluate": "results/json/baseline_results.json"
+}

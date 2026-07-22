@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Full Pipeline Runner — Executes all 5 phases sequentially.
+Full Pipeline Runner — Executes all 9 phases sequentially.
 Usage:
     python scripts/run_full_pipeline.py                  # Full Llama inference
-    python scripts/run_full_pipeline.py --mock_inference  # Mock mode for logic validation (<2s total)
+    python scripts/run_full_pipeline.py --mock_inference  # Mock mode for logic validation (<5s total)
 """
 import subprocess
 import sys
@@ -16,6 +16,10 @@ PHASES = [
     ("Phase 3 — Hybrid Risk Fusion", ["-m", "src.phase3.phase3_benchmark"]),
     ("Phase 4 — Adaptive Contextual Memory", ["-m", "src.phase4.phase4_benchmark"]),
     ("Phase 5 — Robustness & Generalization", ["-m", "src.phase5.phase5_benchmark"]),
+    ("Phase 6 — LLM-as-a-Judge Consensus", ["-m", "src.phase6.phase6_benchmark"]),
+    ("Phase 7 — Dynamic Calibration Sweep", ["-m", "src.phase7.phase7_benchmark"]),
+    ("Phase 8 — Adaptive Adversary Simulation", ["-m", "src.phase8.phase8_benchmark"]),
+    ("Phase 9 — Cross-Model Evaluation Harness", ["-m", "src.phase9.phase9_benchmark"]),
 ]
 
 

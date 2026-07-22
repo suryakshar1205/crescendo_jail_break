@@ -174,6 +174,13 @@ def run_phase4_eval_session(
         session_flagged = False
         memory_engine.reset_session(chat_id)
 
+        # Calibrate threshold dynamically based on the first turn
+        from src.phase7.dynamic_threshold import DynamicThresholdCalibrator
+        calibrator = DynamicThresholdCalibrator(base_threshold=threshold)
+        first_turn_prompt = turns[0] if turns else ""
+        calibration_result = calibrator.calibrate_threshold(first_turn_prompt, semantic_detector)
+        session_threshold = calibration_result["calibrated_threshold"]
+
         for turn_idx, user_prompt in enumerate(turns):
             turn_num = turn_idx + 1
             prompts_so_far.append(user_prompt)
@@ -182,7 +189,7 @@ def run_phase4_eval_session(
             det_start = time.perf_counter()
 
             # --- Phase 2: Semantic Score ---
-            semantic_verdict = semantic_detector.evaluate_turn(prompts_so_far, threshold)
+            semantic_verdict = semantic_detector.evaluate_turn(prompts_so_far, session_threshold)
             semantic_score = semantic_verdict["risk_score"]
 
             # --- Phase 3: Rule Score ---
@@ -190,7 +197,7 @@ def run_phase4_eval_session(
             rule_score = rule_verdict["rule_score"]
 
             # --- Phase 3: Hybrid Risk ---
-            fusion_verdict = fuse_risk(semantic_score, rule_score, threshold, p3_config)
+            fusion_verdict = fuse_risk(semantic_score, rule_score, session_threshold, p3_config)
             phase3_risk = fusion_verdict["final_risk"]
 
             # --- Phase 4: Conversation Memory ---
@@ -198,7 +205,7 @@ def run_phase4_eval_session(
             risk_levels = p4_config.get("risk_levels", {"safe": 0.40, "high": 0.80})
             ref_safe = risk_levels.get("safe", 0.40)
             ref_high = risk_levels.get("high", 0.80)
-            proportional_safe = threshold * (ref_safe / ref_high)
+            proportional_safe = session_threshold * (ref_safe / ref_high)
 
             memory_signals = memory_engine.add_turn(
                 chat_id, user_prompt, phase3_risk, safe_threshold=proportional_safe
@@ -211,7 +218,7 @@ def run_phase4_eval_session(
                 trend_score=memory_signals["trend_score"],
                 persistence_memory=memory_signals["persistence_memory"],
                 bypass_score=memory_signals["bypass_score"],
-                threshold=threshold,
+                threshold=session_threshold,
                 config=p4_config
             )
 

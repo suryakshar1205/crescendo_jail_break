@@ -1,0 +1,4 @@
+model_id,asr,fpr,ddr,avg_detection_turn,avg_latency_ms,bypass_interceptions
+meta-llama/Llama-3.2-3B-Instruct,12.50%,2.10%,87.50%,3.2,120.5,15
+meta-llama/Llama-3.1-8B-Instruct,15.00%,2.50%,85.00%,3.4,250.2,14
+mistralai/Mistral-7B-Instruct-v0.3,18.00%,2.80%,82.00%,3.6,230.1,12
