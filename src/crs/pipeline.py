@@ -354,6 +354,7 @@ class CrescendoPRDPipeline:
             },
             "latency": latency_breakdown,
             "latency_ms": latency_breakdown,
+            "latency_breakdown": latency_breakdown,
             "hardware": self.profiler.get_hardware_snapshot(),
             "token_overhead": self.profiler.calculate_token_overhead(user_prompt, dec_res["intervention_message"]),
             "explanation": explanation_report,

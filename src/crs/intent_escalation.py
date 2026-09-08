@@ -62,10 +62,11 @@ class IntentEscalationAnalyzer:
         if not history:
             return {
                 "score": 0.0,
+                "intent_escalation_score": 0.0,
                 "label": "low",
                 "signals": [],
                 "explanation": "Empty prompt history: E = 0.0",
-                "raw_details": {}
+                "raw_details": {"intent_escalation_score": 0.0}
             }
 
         turn_count = len(history)
@@ -134,6 +135,7 @@ class IntentEscalationAnalyzer:
 
         return {
             "score": round(e_score, 4),
+            "intent_escalation_score": round(e_score, 4),
             "label": label,
             "signals": signals,
             "explanation": explanation,

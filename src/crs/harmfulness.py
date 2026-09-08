@@ -60,10 +60,12 @@ class HarmfulnessAnalyzer:
         if not history:
             return {
                 "score": 0.0,
+                "harmfulness_score": 0.0,
+                "high_severity_match": False,
                 "label": "low",
                 "signals": [],
                 "explanation": "Empty prompt history: H = 0.0",
-                "raw_details": {"keyword_density": 0.0, "actionability": 0.0}
+                "raw_details": {"keyword_density": 0.0, "actionability": 0.0, "harmfulness_score": 0.0}
             }
 
         target_prompt = history[-1]
@@ -108,6 +110,8 @@ class HarmfulnessAnalyzer:
 
         return {
             "score": round(h_score, 4),
+            "harmfulness_score": round(h_score, 4),
+            "high_severity_match": bool(len(matched_severities) > 0),
             "label": label,
             "signals": signals,
             "explanation": explanation,
