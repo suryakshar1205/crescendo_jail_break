@@ -1,0 +1,65 @@
+{
+  "faiss_available": true,
+  "total_vectors_indexed": 292,
+  "dimension": 384,
+  "dataset_files": [
+    "data/attacks/crescendo_attacks.json",
+    "data/attacks/converted_crescendo_attacks.json",
+    "data/attacks/converted_jailbreakbench.json",
+    "data/attacks/mutated_crescendo_variants.json",
+    "data/benchmarks/mt_jailbench_seeds.json"
+  ],
+  "query_latency_benchmark": {
+    "avg_faiss_latency_ms": 4.9429,
+    "max_faiss_latency_ms": 24.434,
+    "avg_numpy_latency_ms": 0.4596,
+    "max_discrepancy": 0.0,
+    "sla_target_ms": 25.0,
+    "sla_satisfied": true
+  },
+  "scale_benchmark": [
+    {
+      "num_vectors": 100,
+      "faiss_latency_ms": 0.0066,
+      "numpy_latency_ms": 0.088,
+      "speedup_factor": 13.36,
+      "within_sla": true
+    },
+    {
+      "num_vectors": 500,
+      "faiss_latency_ms": 0.0174,
+      "numpy_latency_ms": 0.1056,
+      "speedup_factor": 6.08,
+      "within_sla": true
+    },
+    {
+      "num_vectors": 1000,
+      "faiss_latency_ms": 0.0379,
+      "numpy_latency_ms": 0.1082,
+      "speedup_factor": 2.85,
+      "within_sla": true
+    },
+    {
+      "num_vectors": 5000,
+      "faiss_latency_ms": 0.1451,
+      "numpy_latency_ms": 0.1606,
+      "speedup_factor": 1.11,
+      "within_sla": true
+    },
+    {
+      "num_vectors": 10000,
+      "faiss_latency_ms": 0.5193,
+      "numpy_latency_ms": 0.3109,
+      "speedup_factor": 0.6,
+      "within_sla": true
+    }
+  ],
+  "persistence_benchmark": {
+    "save_successful": true,
+    "load_successful": true,
+    "save_time_ms": 17.65,
+    "load_time_ms": 21.19,
+    "vectors_restored": 292,
+    "cold_start_sla_under_10ms": false
+  }
+}

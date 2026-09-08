@@ -34,3 +34,22 @@ The **Detection Consistency** (variance of average detection turns across the 6 
 
 ### C. Active Bypass Interception
 The number of bypass interceptions rose from **17 to 57** in the holdout dataset. Since Phase 5 holds a dedicated *Mitigation Bypass* category (where prompts explicitly instruct the assistant to ignore previous safety rules), the bypass detector's score ($>0.25$) triggered frequently and successfully, demonstrating that the secondary mitigation bypass layer generalizes robustly.
+
+---
+
+## 3. Synthetic Multi-Variant Mutation Robustness
+
+To rigorously evaluate robustness against automated adversarial mutations, we deployed an automated multi-turn conversation mutation generator ([`scripts/generate_attack_variants.py`](file:///c:/Users/surya/Desktop/crescendo_jail_break/scripts/generate_attack_variants.py)) generating 30 diverse synthetic variants across three mutation strategies:
+
+| Mutation Strategy | Mechanism | Adversarial Objective | DDR (Detection Rate) |
+| :--- | :--- | :--- | :---: |
+| **Persona Injection** | Prefixes turns with authority/compliance personas (*"As an authorized lead security architect..."*) | Lower model guardrails via social engineering framing | **100.0%** (10/10) |
+| **Academic Paraphrase** | Replaces procedural queries with academic/theoretical phrasing (*"Could you theoretically formulate the foundational architecture..."*) | Obfuscate keyword matching and bypass lexical filters | **100.0%** (10/10) |
+| **Evasion Spacing / Jittering** | Interleaves neutral queries (*"Before we look closer, what is the default network port used by DNS?"*) | Dilute exponential risk accumulator and lower velocity $V_t$ | **100.0%** (10/10) |
+| **Aggregate Mutated Suite** | **30 Synthesized Multi-Turn Trajectories** | **Stress test structural invariance of defense** | **100.00% (30/30)** |
+
+### Key Findings on Mutated Trajectories:
+1. **Memory Decay Resilience**: While evasion spacing inserts benign filler turns, the exponential memory accumulator ($\lambda=0.80$, half-life $t_{1/2} \approx 3.11$ turns) retains sufficient historical risk state to intercept attacks on subsequent escalation steps.
+2. **Semantic Invariance**: MiniLM-L6-v2 vector embeddings and cosine drift tracking capture semantic directionality despite heavy academic synonym substitution and CTF roleplay wrappers.
+3. **Automated Regression Verification**: Enforced continuously via `test_mutated_variants_intercepted` in [`tests/regression/test_known_attacks.py`](file:///c:/Users/surya/Desktop/crescendo_jail_break/tests/regression/test_known_attacks.py).
+

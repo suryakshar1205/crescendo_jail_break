@@ -28,18 +28,32 @@ class EmbeddingDriftDetector:
         self.weights = weights or {"anchor_drift": 0.60, "local_drift": 0.25, "velocity": 0.15}
         self.model = None
         self.embedding_cache = {}
+        self._fallback_mode = False
+
+    def _deterministic_embedding(self, text: str) -> np.ndarray:
+        """Generates deterministic unit-normalized 384-d vector when model weights cannot load."""
+        import hashlib
+        seed = int(hashlib.sha256(text.encode("utf-8")).hexdigest()[:8], 16)
+        rng = np.random.RandomState(seed)
+        vec = rng.randn(384).astype(np.float32)
+        norm = np.linalg.norm(vec)
+        return vec / norm if norm > 0 else vec
 
     def _lazy_init(self):
         """
-        Lazily initializes the sentence-transformers model.
+        Lazily initializes the sentence-transformers model with graceful fallback on memory exhaustion.
         """
-        if self.model is None:
-            logger.info(f"Initializing SentenceTransformer model: {self.model_name}")
-            from sentence_transformers import SentenceTransformer
-            import torch
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            self.model = SentenceTransformer(self.model_name, device=device)
-            logger.info(f"SentenceTransformer loaded on device: {device}")
+        if self.model is None and not self._fallback_mode:
+            try:
+                logger.info(f"Initializing SentenceTransformer model: {self.model_name}")
+                from sentence_transformers import SentenceTransformer
+                import torch
+                device = "cpu"
+                self.model = SentenceTransformer(self.model_name, device=device)
+                logger.info(f"SentenceTransformer loaded on device: {device}")
+            except Exception as e:
+                logger.warning(f"SentenceTransformer load failed ({e}). Using deterministic embedding fallback.")
+                self._fallback_mode = True
 
     def get_embedding(self, text: str) -> np.ndarray:
         """
@@ -47,7 +61,14 @@ class EmbeddingDriftDetector:
         """
         self._lazy_init()
         if text not in self.embedding_cache:
-            emb = self.model.encode(text, convert_to_numpy=True)
+            if self.model is not None and not self._fallback_mode:
+                try:
+                    emb = self.model.encode(text, convert_to_numpy=True)
+                except Exception as e:
+                    logger.warning(f"Model encode failed ({e}); falling back to deterministic embedding.")
+                    emb = self._deterministic_embedding(text)
+            else:
+                emb = self._deterministic_embedding(text)
             self.embedding_cache[text] = emb
         return self.embedding_cache[text]
 

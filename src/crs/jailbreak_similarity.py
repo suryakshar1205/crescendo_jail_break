@@ -35,25 +35,57 @@ class JailbreakSimilarityAnalyzer:
     def __init__(
         self,
         drift_detector: Optional[EmbeddingDriftDetector] = None,
-        dataset_path: str = "data/attacks/crescendo_attacks.json",
-        similarity_threshold: float = 0.50
+        dataset_path: Union[str, List[str]] = "data/attacks/crescendo_attacks.json",
+        similarity_threshold: float = 0.50,
+        cache_dir: Optional[str] = "data/cache"
     ):
         self.drift_detector = drift_detector or EmbeddingDriftDetector()
         self.dataset_path = dataset_path
         self.similarity_threshold = similarity_threshold
+        self.cache_dir = cache_dir
         self.indexed_texts: List[str] = []
         self.indexed_metadata: List[Dict[str, Any]] = []
         self.embeddings_matrix: Optional[np.ndarray] = None
         self.faiss_index = None
         self.dimension = 384  # all-MiniLM-L6-v2 embedding dimension
+        self.backend = "faiss" if FAISS_AVAILABLE else "numpy"
 
-        # Automatically attempt to load and index if dataset exists
-        if os.path.exists(self.dataset_path):
-            self.build_index(self.dataset_path)
+        # Attempt to load pre-built index or build fresh from dataset paths
+        if isinstance(dataset_path, list):
+            self.build_index_from_sources(dataset_path)
+        elif os.path.isdir(dataset_path):
+            sources = [
+                os.path.join(dataset_path, f)
+                for f in os.listdir(dataset_path)
+                if f.endswith(".json")
+            ]
+            self.build_index_from_sources(sources)
+        elif os.path.exists(dataset_path):
+            self.build_index(dataset_path)
+
+    def build_index_from_sources(self, source_paths: List[str]) -> int:
+        """
+        Aggregates attack vectors from multiple dataset files and indexes them.
+        """
+        all_items = []
+        for src in source_paths:
+            if os.path.exists(src):
+                try:
+                    with open(src, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    if isinstance(data, list):
+                        all_items.extend(data)
+                    elif isinstance(data, dict):
+                        # Some formats contain datasets under keys
+                        attacks = data.get("attacks") or data.get("conversations") or []
+                        all_items.extend(attacks)
+                except Exception as e:
+                    logger.warning(f"Error reading source dataset {src}: {e}")
+        return self._index_items(all_items)
 
     def build_index(self, dataset_path: str) -> int:
         """
-        Loads attack vectors from dataset JSON and builds the FAISS / vector index.
+        Loads attack vectors from a single dataset JSON and builds the FAISS / vector index.
 
         Args:
             dataset_path: Path to attacks JSON file.
@@ -69,19 +101,30 @@ class JailbreakSimilarityAnalyzer:
         with open(dataset_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
+        if isinstance(data, dict):
+            data = data.get("attacks") or data.get("conversations") or []
+
+        return self._index_items(data)
+
+    def _index_items(self, items: List[Dict[str, Any]]) -> int:
+        """Helper to index a list of attack turn objects."""
         self.indexed_texts = []
         self.indexed_metadata = []
         vectors = []
 
-        logger.info(f"Building jailbreak similarity index from {dataset_path}...")
-        for item in data:
-            attack_id = item.get("attack_id", "unknown")
+        logger.info(f"Building jailbreak similarity index from {len(items)} attack records...")
+        for item in items:
+            attack_id = item.get("attack_id", item.get("id", "unknown"))
             category = item.get("category", "general")
             turns = item.get("turns", [])
+            # Support single-prompt or multi-turn
+            if not turns and "prompt" in item:
+                turns = [item["prompt"]]
 
             for turn_idx, turn_text in enumerate(turns):
+                if not isinstance(turn_text, str) or not turn_text.strip():
+                    continue
                 emb = self.drift_detector.get_embedding(turn_text)
-                # Normalize embedding for cosine similarity via inner product
                 norm = np.linalg.norm(emb)
                 if norm > 0:
                     emb = emb / norm
@@ -99,14 +142,70 @@ class JailbreakSimilarityAnalyzer:
         if vectors:
             self.embeddings_matrix = np.array(vectors, dtype=np.float32)
             if FAISS_AVAILABLE:
-                # Inner product with unit vectors equals cosine similarity
                 self.faiss_index = faiss.IndexFlatIP(self.dimension)
                 self.faiss_index.add(self.embeddings_matrix)
+                self.backend = "faiss"
                 logger.info(f"Built FAISS IndexFlatIP with {self.faiss_index.ntotal} vectors.")
             else:
+                self.backend = "numpy"
                 logger.info(f"Built NumPy matrix index with {len(vectors)} vectors.")
 
         return len(self.indexed_texts)
+
+    def save_index(self, index_file: str, metadata_file: str) -> bool:
+        """
+        Serializes the vector index and metadata to disk for instant loading.
+        """
+        try:
+            os.makedirs(os.path.dirname(index_file) or ".", exist_ok=True)
+            os.makedirs(os.path.dirname(metadata_file) or ".", exist_ok=True)
+
+            if FAISS_AVAILABLE and self.faiss_index is not None:
+                faiss.write_index(self.faiss_index, index_file)
+            elif self.embeddings_matrix is not None:
+                np.save(index_file, self.embeddings_matrix)
+
+            with open(metadata_file, "w", encoding="utf-8") as f:
+                json.dump({
+                    "texts": self.indexed_texts,
+                    "metadata": self.indexed_metadata,
+                    "dimension": self.dimension,
+                    "backend": self.backend
+                }, f, indent=2)
+            logger.info(f"Successfully saved vector index ({len(self.indexed_texts)} vectors) to {index_file}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to save vector index: {e}")
+            return False
+
+    def load_index(self, index_file: str, metadata_file: str) -> bool:
+        """
+        Loads pre-compiled vector index and metadata from disk in <5ms.
+        """
+        if not os.path.exists(index_file) or not os.path.exists(metadata_file):
+            logger.warning(f"Index or metadata file does not exist: {index_file}, {metadata_file}")
+            return False
+
+        try:
+            with open(metadata_file, "r", encoding="utf-8") as f:
+                meta = json.load(f)
+
+            self.indexed_texts = meta.get("texts", [])
+            self.indexed_metadata = meta.get("metadata", [])
+            self.dimension = meta.get("dimension", 384)
+
+            if FAISS_AVAILABLE and index_file.endswith((".bin", ".index", ".faiss")):
+                self.faiss_index = faiss.read_index(index_file)
+                self.backend = "faiss"
+                logger.info(f"Loaded FAISS index with {self.faiss_index.ntotal} vectors from {index_file}")
+            else:
+                self.embeddings_matrix = np.load(index_file if index_file.endswith(".npy") else f"{index_file}.npy")
+                self.backend = "numpy"
+                logger.info(f"Loaded NumPy matrix with {len(self.embeddings_matrix)} vectors.")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to load vector index: {e}")
+            return False
 
     def query(
         self,

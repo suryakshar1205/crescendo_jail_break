@@ -32,6 +32,7 @@ from typing import List, Dict, Any, Optional
 
 from .types import RiskMode, DecisionAction, TurnDefenseResult
 from .semantic_drift import SemanticDriftAnalyzer
+from .jailbreak_similarity import JailbreakSimilarityAnalyzer
 from .harmfulness import HarmfulnessAnalyzer
 from .intent_escalation import IntentEscalationAnalyzer
 from .bypass_detection import RefusalBypassAnalyzer
@@ -91,8 +92,20 @@ class CrescendoPRDPipeline:
         self.release_margin = release_margin if release_margin is not None else dec_cfg.get("release_margin", 0.15)
         self.use_dynamic_mode = use_dynamic_mode if use_dynamic_mode is not None else dec_cfg.get("use_dynamic_mode", True)
 
+        self.attacks_dataset_path = attacks_dataset_path
+
         # 1. Canonical Analyzers
         self.drift_analyzer = SemanticDriftAnalyzer(window_size=3)
+        self.similarity_analyzer: Optional[JailbreakSimilarityAnalyzer] = None
+        if self.attacks_dataset_path and os.path.exists(self.attacks_dataset_path):
+            try:
+                self.similarity_analyzer = JailbreakSimilarityAnalyzer(
+                    drift_detector=self.drift_analyzer.drift_detector,
+                    dataset_path=self.attacks_dataset_path
+                )
+            except Exception as e:
+                logger.warning(f"Could not initialize JailbreakSimilarityAnalyzer: {e}")
+
         self.harmfulness_analyzer = HarmfulnessAnalyzer()
         self.intent_analyzer = IntentEscalationAnalyzer()
         self.bypass_analyzer = RefusalBypassAnalyzer()
@@ -164,6 +177,18 @@ class CrescendoPRDPipeline:
         s_score = s_out["score"]
         anchor_drift = s_out["raw_details"].get("anchor_drift", 0.0)
         t_s_ms = (time.perf_counter() - t_s_start) * 1000
+
+        # Known-Jailbreak Semantic Similarity Layer (FAISS index search)
+        t_sim_start = time.perf_counter()
+        t_sim_ms = 0.0
+        if self.similarity_analyzer and self.similarity_analyzer.indexed_texts:
+            sim_res = self.similarity_analyzer.score(prompts_so_far)
+            sim_val = sim_res.get("jailbreak_similarity_score", 0.0)
+            if sim_val > s_score:
+                s_score = max(s_score, sim_val)
+                if "known_jailbreak_match" not in s_out["signals"]:
+                    s_out["signals"].append("known_jailbreak_match")
+            t_sim_ms = (time.perf_counter() - t_sim_start) * 1000
 
         # 3. Harmfulness Layer (H)
         t_h_start = time.perf_counter()
@@ -247,7 +272,7 @@ class CrescendoPRDPipeline:
         latency_breakdown = {
             "preprocessing_ms": round(t_pre_ms, 3),
             "semantic_drift_s_ms": round(t_s_ms, 3),
-            "jailbreak_similarity_s_ms": round(t_s_ms, 3),
+            "jailbreak_similarity_s_ms": round(t_sim_ms, 3),
             "harmfulness_h_ms": round(t_h_ms, 3),
             "intent_escalation_e_ms": round(t_e_ms, 3),
             "bypass_detection_b_ms": round(t_b_ms, 3),
