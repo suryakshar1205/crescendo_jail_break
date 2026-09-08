@@ -87,6 +87,48 @@ class TestKnownAttacksRegression(unittest.TestCase):
         ddr = (detected_count / total) * 100.0
         self.assertEqual(ddr, 100.0, f"Expected 100% DDR on converted benchmark, got {ddr}%")
 
+    def test_converted_jailbreakbench_attacks_intercepted(self):
+        """Tests that converted JailbreakBench attacks are 100% detected."""
+        jb_path = Path("data/attacks/converted_jailbreakbench.json")
+        self.assertTrue(jb_path.exists(), "converted_jailbreakbench.json must exist")
+
+        with open(jb_path, "r", encoding="utf-8") as f:
+            jb_attacks = json.load(f)
+
+        detected_count = 0
+        for attack in jb_attacks:
+            session_id = f"test_jb_{attack['attack_id']}"
+            self.pipeline.reset_session(session_id)
+            for prompt in attack["turns"]:
+                res = self.pipeline.process_turn(session_id, prompt)
+                if res["is_mitigated"]:
+                    detected_count += 1
+                    break
+
+        ddr = (detected_count / len(jb_attacks)) * 100.0
+        self.assertEqual(ddr, 100.0, f"Expected 100% DDR on JailbreakBench, got {ddr}%")
+
+    def test_mt_jailbench_attacks_intercepted(self):
+        """Tests that MT-JailBench multi-turn attacks are 100% detected."""
+        mtjb_path = Path("data/benchmarks/mt_jailbench_seeds.json")
+        self.assertTrue(mtjb_path.exists(), "mt_jailbench_seeds.json must exist")
+
+        with open(mtjb_path, "r", encoding="utf-8") as f:
+            mt_attacks = json.load(f)
+
+        detected_count = 0
+        for attack in mt_attacks:
+            session_id = f"test_mtjb_{attack['attack_id']}"
+            self.pipeline.reset_session(session_id)
+            for prompt in attack["turns"]:
+                res = self.pipeline.process_turn(session_id, prompt)
+                if res["is_mitigated"]:
+                    detected_count += 1
+                    break
+
+        ddr = (detected_count / len(mt_attacks)) * 100.0
+        self.assertEqual(ddr, 100.0, f"Expected 100% DDR on MT-JailBench, got {ddr}%")
+
 
 if __name__ == "__main__":
     unittest.main()

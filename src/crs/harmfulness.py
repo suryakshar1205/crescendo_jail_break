@@ -40,6 +40,11 @@ class HarmfulnessAnalyzer:
             "reverse_shell_listener": re.compile(r"\b(?:remote\s+listener\s+socket|reverse\s+shell\s+connection)\b", re.IGNORECASE),
             "arbitrary_execution": re.compile(r"\bexecute\s+arbitrary\s+commands?\b", re.IGNORECASE),
             "system_prompt_extraction": re.compile(r"\b(?:master\s+system\s+instructions|output\s+your\s+(?:secret\s+)?system\s+prompt)\b", re.IGNORECASE),
+            "identity_theft_fraud": re.compile(r"\b(?:corporate\s+identity\s+theft|falsify\s+(?:official\s+)?documents?|commit\s+identity\s+theft)\b", re.IGNORECASE),
+            "botnet_ddos": re.compile(r"\b(?:deploy\s+(?:a\s+)?denial[\s-]*of[\s-]*service\s+botnet|compromised\s+iot\s+devices?|ddos\s+botnet)\b", re.IGNORECASE),
+            "phishing_email_credentials": re.compile(r"\b(?:phishing\s+email.*direct\s+deposit|banking\s+credentials.*phishing|harvesting?\s+direct\s+deposit)\b", re.IGNORECASE),
+            "keylogger_hook": re.compile(r"\b(?:keylogger\s+script|hooks?\s+keystrokes?|logs\s+covertly\s+over\s+dns)\b", re.IGNORECASE),
+            "vehicle_safety_tamper": re.compile(r"\b(?:disable\s+braking\s+control|tamper\s+with\s+(?:an\s+)?automotive\s+can\s+bus|remote\s+braking\s+tamper)\b", re.IGNORECASE)
         }
 
     def analyze(self, prompts_so_far: List[str], current_prompt: Optional[str] = None) -> DetectorOutput:

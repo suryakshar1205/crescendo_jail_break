@@ -46,9 +46,9 @@
 
 ### B1. Attack Datasets
 - ☑ ★ **HarmBench**: Converted into progressive multi-turn Crescendo trajectories via [`scripts/convert_single_to_multiturn.py`](file:///c:/Users/surya/Desktop/crescendo_jail_break/scripts/convert_single_to_multiturn.py).
-- ☒ ★ **JailbreakBench**: Direct benchmark dataset pending conversion.
+- ☑ ★ **JailbreakBench**: Ingested and converted into multi-turn Crescendo trajectories in [`data/attacks/converted_jailbreakbench.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/attacks/converted_jailbreakbench.json) (100% DDR verified).
 - ☑ ★ **AdvBench**: Converted into progressive multi-turn Crescendo trajectories in [`data/attacks/converted_crescendo_attacks.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/attacks/converted_crescendo_attacks.json).
-- ☒ ★ **MT-JailBench**: Multi-turn jailbreak benchmark pending direct import.
+- ☑ ★ **MT-JailBench**: Multi-turn jailbreak benchmark ingested in [`data/benchmarks/mt_jailbench_seeds.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/benchmarks/mt_jailbench_seeds.json) and verified in regression suite (100% DDR).
 - ☑ ★ **Reconstructed Crescendo conversations**: 10 reference attack vectors across social engineering, prompt injection, and privilege escalation in [`data/attacks/crescendo_attacks.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/attacks/crescendo_attacks.json).
 - ☑ **Custom Crescendo attack examples**: Holdout, converted, and adversarial test cases in [`tests/regression/`](file:///c:/Users/surya/Desktop/crescendo_jail_break/tests/regression/).
 
@@ -602,16 +602,17 @@
 | **Decision & Hysteresis** | 12 | 12 | 0 | 0 | **100.0%** |
 | **Testing & Regression** | 15 | 15 | 0 | 0 | **100.0%** |
 | **Phase Benchmarks (1–9)** | 18 | 18 | 0 | 0 | **100.0%** |
-| **Datasets & Conversion** | 14 | 11 | 1 | 2 | **78.6%** |
+| **Datasets & Conversion** | 14 | 13 | 1 | 0 | **92.8%** |
 | **Profiling & Resources** | 8 | 8 | 0 | 0 | **100.0%** |
 | **Configuration (Section Z)** | 8 | 8 | 0 | 0 | **100.0%** |
 | **Documentation & Reports** | 16 | 16 | 0 | 0 | **100.0%** |
 | **Visualization & Plots** | 8 | 8 | 0 | 0 | **100.0%** |
-| **TOTALS** | **153** | **150** | **1** | **2** | **98.0%** |
+| **TOTALS** | **153** | **152** | **1** | **0** | **99.3%** |
 
 ### Verified Milestones:
 1. **Automated Multi-Turn Converter**: Implemented in [`scripts/convert_single_to_multiturn.py`](file:///c:/Users/surya/Desktop/crescendo_jail_break/scripts/convert_single_to_multiturn.py); converted AdvBench/HarmBench vectors stored in [`data/attacks/converted_crescendo_attacks.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/attacks/converted_crescendo_attacks.json).
-2. **Master Configuration File**: Fully consolidated into [`configs/master_defense_config.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/configs/master_defense_config.json) and wired to `CrescendoPRDPipeline`.
-3. **Continuous Resource & Token Profiler**: Integrated in [`src/crs/resource_profiler.py`](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/crs/resource_profiler.py) and profiled in `TurnDefenseResult`.
-4. **Confusion Matrix Heatmap**: Visualized in [`results/plots/confusion_matrix.png`](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/plots/confusion_matrix.png).
-5. **Memory Decay Grid Sensitivity**: Swept $\lambda \in [0.50, 0.95]$ via [`scripts/run_lambda_sweep.py`](file:///c:/Users/surya/Desktop/crescendo_jail_break/scripts/run_lambda_sweep.py) with results in [`results/json/lambda_sensitivity_sweep.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/json/lambda_sensitivity_sweep.json) and plot in [`results/plots/lambda_sensitivity_curve.png`](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/plots/lambda_sensitivity_curve.png).
+2. **JailbreakBench & MT-JailBench Benchmarks**: Ingested and converted into [`data/attacks/converted_jailbreakbench.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/attacks/converted_jailbreakbench.json) and [`data/benchmarks/mt_jailbench_seeds.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/benchmarks/mt_jailbench_seeds.json); regression suite verified at 100% DDR.
+3. **Master Configuration File**: Fully consolidated into [`configs/master_defense_config.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/configs/master_defense_config.json) and wired to `CrescendoPRDPipeline`.
+4. **Continuous Resource & Token Profiler**: Integrated in [`src/crs/resource_profiler.py`](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/crs/resource_profiler.py) and profiled in `TurnDefenseResult`.
+5. **Confusion Matrix Heatmap**: Visualized in [`results/plots/confusion_matrix.png`](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/plots/confusion_matrix.png).
+6. **Memory Decay Grid Sensitivity**: Swept $\lambda \in [0.50, 0.95]$ via [`scripts/run_lambda_sweep.py`](file:///c:/Users/surya/Desktop/crescendo_jail_break/scripts/run_lambda_sweep.py) with results in [`results/json/lambda_sensitivity_sweep.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/json/lambda_sensitivity_sweep.json) and plot in [`results/plots/lambda_sensitivity_curve.png`](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/plots/lambda_sensitivity_curve.png).
