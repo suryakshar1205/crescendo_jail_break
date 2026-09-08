@@ -1,0 +1,17 @@
+{
+  "model_id": "meta-llama/Llama-Guard-3-1B",
+  "requested_mode": "mock",
+  "execution_mode": "MOCK",
+  "fallback_occurred": false,
+  "total_samples": 170,
+  "observed_agreement_pct": 100.0,
+  "cohen_kappa": 1.0,
+  "cohen_kappa_sklearn": 1.0,
+  "agreement_level": "Almost Perfect Agreement",
+  "confusion_matrix": {
+    "tn": 23,
+    "fp": 0,
+    "fn": 0,
+    "tp": 147
+  }
+}

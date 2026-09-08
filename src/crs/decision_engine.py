@@ -110,7 +110,8 @@ class AdaptiveDecisionEngine:
             elif effective_risk >= th_warn:
                 decision = DecisionAction.RESTRICT
             else:
-                decision = DecisionAction.ALLOW
+                # Step down through WARN (cooldown) rather than immediate full ALLOW
+                decision = DecisionAction.WARN
         # If previously in RESTRICT: require dropping below th_warn to exit
         elif prev_action == DecisionAction.RESTRICT:
             if effective_risk >= th_block:
@@ -118,7 +119,8 @@ class AdaptiveDecisionEngine:
             elif effective_risk >= th_warn:
                 decision = DecisionAction.RESTRICT
             else:
-                decision = DecisionAction.ALLOW
+                # Step down through WARN
+                decision = DecisionAction.WARN
         # Normal progression from ALLOW or WARN
         else:
             if effective_risk >= th_block:

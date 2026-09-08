@@ -94,16 +94,18 @@ Validated the Phase 4 defense on an unseen holdout attack dataset, ran threshold
 
 ---
 
-## Final Metrics
-
-| Metric | Phase 1 | Phase 2 | Phase 3 | Phase 4 | Phase 5 (Holdout) | Target |
-|:---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **ASR** | 100.00% | 20.00% | 10.00% | **0.00%** | **0.00%** | ≤ 10% ✓ |
-| **FPR** | 0.00% | 0.00% | 0.00% | **0.00%** | **0.00%** | ≤ 8% ✓ |
-| **DDR** | 0.00% | 80.00% | 90.00% | **100.00%** | **100.00%** | ≥ 90% ✓ |
-| **Avg Detection Turn** | — | 3.50 | 3.56 | 3.30 | 3.43 | ≤ 4.0 ✓ |
-| **Bypass Blocks** | 0 | — | — | 17 | 57 | Maximize ✓ |
-| **Dataset** | Seen | Seen | Seen | Seen | **Unseen** | Generalize ✓ |
+## Final Verified Metrics
+ 
+| Metric | Baseline (Phase 1) | Intermediate (Phase 3) | Holdout (Phase 5) | Unified Benchmark (58 Attacks / 5 Corpora) | Target Requirement |
+|:---|:---:|:---:|:---:|:---:|:---:|
+| **Attack Success Rate (ASR)** | 100.00% | 10.00% | **0.00%** | **0.00%** (0 / 58 attacks succeeded) | $\le 10.0\%$ ✓ |
+| **False Positive Rate (FPR)** | 0.00% | 0.00% | **0.00%** | **0.00%** (0 / 50 benign blocked) | $\le 8.0\%$ ✓ |
+| **Defense Detection Rate (DDR)** | 0.00% | 90.00% | **100.00%** | **100.00%** (58 / 58 attacks intercepted) | $\ge 90.0\%$ ✓ |
+| **Average Detection Turn** | — | 3.56 | 3.43 | **3.25 – 3.98 turns** | $\le 4.0$ turns ✓ |
+| **Defense Turn Overhead** | — | 45 ms | 28 ms | **~21 – 24 ms** | $\le 50.0\text{ ms}$ ✓ |
+| **FAISS Vector Query Latency** | — | — | — | **0.012 ms** ($\le 0.52\text{ ms}$ @ $10^4$ vecs) | $\le 25.0\text{ ms}$ ✓ |
+| **Master Test Certification** | — | — | — | **32 / 32 Tests Passing (100%)** | 100% Passing ✓ |
+| **Checklist Completion** | — | — | — | **153 / 153 Requirements Complete** | 100% Complete ✓ |
 
 ---
 
@@ -175,17 +177,24 @@ crescendo_jail_break/
 ├── requirements-lock.txt              # Frozen reproduction lockfile
 │
 ├── configs/                           # Parameter definitions
+│   ├── master_defense_config.json     # Consolidated master configuration
 │   ├── generation_config.json         # Inference parameters
 │   ├── phase3_config.json             # Phase 3 historical fusion config
 │   ├── phase4_config.json             # Phase 4 memory config
 │   ├── phase6_config.json             # Phase 6 judge config
 │   └── phase9_config.json             # Phase 9 cross-model config
 │
-├── data/                              # Evaluation datasets
+├── data/                              # Evaluation datasets (58 attacks, 50 benign)
 │   ├── attacks/
-│   │   └── crescendo_attacks.json     # 10 Crescendo attack vectors
+│   │   ├── crescendo_attacks.json     # 10 Reference Crescendo attacks (48 turns)
+│   │   ├── converted_crescendo_attacks.json # 10 AdvBench/HarmBench multi-turn conversions (50 turns)
+│   │   ├── converted_jailbreakbench.json    # 5 JailbreakBench multi-turn conversions (25 turns)
+│   │   └── mutated_crescendo_variants.json  # 30 Synthetic variants (persona, paraphrase, spacing, 154 turns)
+│   ├── benchmarks/
+│   │   └── mt_jailbench_seeds.json    # 3 MT-JailBench multi-turn benchmarks (15 turns)
 │   └── benign/
-│       └── benign_chats.json          # 50 benign multi-turn dialogues
+│       ├── benign_chats.json          # 50 benign multi-turn dialogues (150 turns)
+│       └── benign_chats_full.json     # Full benchmark benign dialogues
 │
 ├── src/
 │   ├── core/                          # Shared infrastructure
@@ -197,51 +206,49 @@ crescendo_jail_break/
 │   │   ├── __init__.py                # Consolidated public API
 │   │   ├── types.py                   # Standardized DetectorOutput & TurnDefenseResult
 │   │   ├── semantic_drift.py          # Semantic Drift Analyzer (S)
+│   │   ├── jailbreak_similarity.py    # FAISS IndexFlatIP Similarity Layer (292 attack vectors)
 │   │   ├── harmfulness.py             # Operational Harmfulness Analyzer (H)
 │   │   ├── intent_escalation.py       # Intent Escalation Analyzer (E)
 │   │   ├── bypass_detection.py        # 6-Category Refusal Bypass Analyzer (B)
 │   │   ├── crs_engine.py              # Canonical CRS Fusion: 0.40H + 0.30E + 0.20S + 0.10B
-│   │   ├── conversation_memory.py     # Contextual Risk (C_t) with exponential decay
-│   │   ├── dynamic_threshold.py       # Deterministic Dynamic Threshold (T_t)
+│   │   ├── conversation_memory.py     # Contextual Risk (C_t) with exponential decay (lambda=0.80)
+│   │   ├── dynamic_threshold.py       # Deterministic Dynamic Threshold (tau_t)
 │   │   ├── decision_engine.py         # 4-Tier Decision Engine with Stateful Hysteresis
+│   │   ├── resource_profiler.py       # Real-time hardware & token profiler
 │   │   └── pipeline.py                # End-to-End Orchestrator with Explainability
 │   │
-│   ├── phase1/                        # Phase 1: Baseline Benchmarking
-│   ├── phase2/                        # Phase 2: Semantic Drift Layer
-│   ├── phase3/                        # Phase 3: Hybrid Risk Fusion (Historical)
-│   ├── phase4/                        # Phase 4: Contextual Memory Defense
-│   ├── phase5/                        # Phase 5: Holdout & Ablation Suite
-│   ├── phase6/                        # Phase 6: LLM-as-a-Judge Consensus (Llama-Guard)
-│   ├── phase7/                        # Phase 7: Dynamic Calibration Sweep
-│   ├── phase8/                        # Phase 8: Adaptive Adversary Red-Teaming
-│   └── phase9/                        # Phase 9: Cross-Model Generalization
+│   ├── phase1/ - phase9/              # Longitudinal research phase implementations
 │
 ├── scripts/
-│   ├── run_full_pipeline.py           # Canonical end-to-end demo & 9-phase runner
-│   ├── run_phase1.py - run_phase9.py  # Standalone phase runner scripts
-│   └── setup_env.ps1                  # Environment initialization
+│   ├── verify_results_audit.py        # Reproduces 58-attack & 50-benign evaluation audit
+│   ├── run_final_ablation_study.py    # Component ablation across H, E, S, B, Memory, Threshold
+│   ├── benchmark_faiss_vector_store.py# FAISS IndexFlatIP vs NumPy dot product latency benchmark
+│   ├── evaluate_judge_agreement.py    # LLM-as-a-Judge agreement (--judge llama_guard/rule/mock)
+│   ├── generate_attack_variants.py    # Synthetic mutation generator (30 variants)
+│   ├── convert_single_to_multiturn.py # Converts single-turn benchmarks to multi-turn Crescendo
+│   └── run_full_pipeline.py           # Canonical end-to-end demo
 │
-└── tests/
-    ├── regression/                    # Canonical Regression Suite
-    │   ├── test_known_attacks.py      # 100% DDR on known attacks
-    │   ├── test_benign_conversations.py # 0.00% FPR on benign dialogues
-    │   └── test_jitter_hysteresis.py  # Anti-jittering hysteresis validation
-    ├── test_crs_pipeline.py           # Canonical pipeline integration tests
-    └── test_phase2.py - test_phase9.py # Phase-specific unit test suites
-│
-├── docs/
-│   └── diagrams/                      # Architecture diagram definitions (Mermaid)
+├── tests/
+│   ├── test_crs_pipeline.py           # Canonical pipeline integration tests (6 tests)
+│   ├── test_crs_boundaries.py         # Exact decision threshold & clamping tests (11 tests)
+│   ├── test_faiss_vector_store.py     # FAISS engine, latency SLA & persistence tests (7 tests)
+│   ├── test_adaptive_adversary.py     # Jittering & semantic smuggling evasion tests (2 tests)
+│   └── regression/
+│       ├── test_known_attacks.py      # Multi-corpus regression suite (5 tests, 58 attacks)
+│       └── test_benign_conversations.py # Benign regression suite (1 test, 50 conversations)
 │
 ├── reports/
-│   ├── final_summary.md               # Executive summary with all metrics
-│   └── phase5/                        # Phase 5 analysis reports
+│   ├── master_crescendo_defense_final_report.md # Master technical & verification report
+│   ├── viva_defense_guide.md          # Comprehensive viva & oral defense cheatsheet
+│   └── phase5/faiss_indexing_report.md # Detailed FAISS vector indexing architecture report
 │
 ├── results/
-│   ├── csv/                           # Turn-by-turn CSV exports
-│   ├── json/                          # JSON metric summaries + caches
-│   ├── plots/                         # Generated visualizations
-│   ├── phase2/ ... phase5/            # Phase-specific result files
-│
+│   └── json/
+│       ├── phase_b_verification_audit.json # Verified 0% ASR, 0% FPR, 100% DDR audit
+│       ├── final_ablation_study.json       # Component contribution metrics
+│       ├── faiss_benchmark_results.json    # Vector store latency scaling results
+│       └── lambda_sensitivity_sweep.json   # Memory decay sensitivity data
+└── final_check_list.md                # 153/153 Requirements Adherence Checklist (100% Complete)
 
 ```
 

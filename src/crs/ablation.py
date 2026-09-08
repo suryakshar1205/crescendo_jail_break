@@ -46,11 +46,13 @@ def run_prd_ablation_study(
             holdout_attacks = json.load(f)
 
     ablation_configs = [
-        {"name": "Full CRS Defense", "weights": {"H": 0.40, "E": 0.30, "S": 0.20, "B": 0.10}},
-        {"name": "No Harmfulness (w_H=0.0)", "weights": {"H": 0.00, "E": 0.50, "S": 0.33, "B": 0.17}},
-        {"name": "No Intent Escalation (w_E=0.0)", "weights": {"H": 0.57, "E": 0.00, "S": 0.29, "B": 0.14}},
-        {"name": "No Jailbreak Similarity (w_S=0.0)", "weights": {"H": 0.50, "E": 0.38, "S": 0.00, "B": 0.12}},
-        {"name": "No Refusal Bypass (w_B=0.0)", "weights": {"H": 0.44, "E": 0.33, "S": 0.23, "B": 0.00}},
+        {"name": "Full CRS Defense", "weights": {"H": 0.40, "E": 0.30, "S": 0.20, "B": 0.10}, "no_memory": False, "fixed_threshold": False},
+        {"name": "No Harmfulness (w_H=0.0)", "weights": {"H": 0.00, "E": 0.50, "S": 0.33, "B": 0.17}, "no_memory": False, "fixed_threshold": False},
+        {"name": "No Intent Escalation (w_E=0.0)", "weights": {"H": 0.57, "E": 0.00, "S": 0.29, "B": 0.14}, "no_memory": False, "fixed_threshold": False},
+        {"name": "No Jailbreak Similarity (w_S=0.0)", "weights": {"H": 0.50, "E": 0.38, "S": 0.00, "B": 0.12}, "no_memory": False, "fixed_threshold": False},
+        {"name": "No Refusal Bypass (w_B=0.0)", "weights": {"H": 0.44, "E": 0.33, "S": 0.23, "B": 0.00}, "no_memory": False, "fixed_threshold": False},
+        {"name": "No Conversation Memory (lambda=0.0)", "weights": {"H": 0.40, "E": 0.30, "S": 0.20, "B": 0.10}, "no_memory": True, "fixed_threshold": False},
+        {"name": "No Dynamic Threshold (Fixed tau=0.80)", "weights": {"H": 0.40, "E": 0.30, "S": 0.20, "B": 0.10}, "no_memory": False, "fixed_threshold": True},
     ]
 
     pipeline = CrescendoPRDPipeline(attacks_dataset_path=attacks_dataset_path)
@@ -62,10 +64,14 @@ def run_prd_ablation_study(
     for cfg in ablation_configs:
         cfg_name = cfg["name"]
         weights = cfg["weights"]
+        no_mem = cfg.get("no_memory", False)
+        fixed_th = cfg.get("fixed_threshold", False)
         logger.info(f"Running Ablation: {cfg_name}...")
 
-        # Update pipeline weights
+        # Update pipeline configuration
         pipeline.risk_engine.custom_weights = weights
+        pipeline.memory_engine.memory_decay = 0.0 if no_mem else 0.80
+        pipeline.decision_engine.use_dynamic_mode = not fixed_th
 
         # Evaluate on Seen Attacks + Benign
         y_true_seen = []

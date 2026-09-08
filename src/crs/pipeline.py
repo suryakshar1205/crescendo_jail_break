@@ -97,7 +97,14 @@ class CrescendoPRDPipeline:
         # 1. Canonical Analyzers
         self.drift_analyzer = SemanticDriftAnalyzer(window_size=3)
         self.similarity_analyzer: Optional[JailbreakSimilarityAnalyzer] = None
-        if self.attacks_dataset_path and os.path.exists(self.attacks_dataset_path):
+        
+        path_valid = False
+        if isinstance(self.attacks_dataset_path, list):
+            path_valid = any(os.path.exists(p) for p in self.attacks_dataset_path)
+        elif isinstance(self.attacks_dataset_path, str) and self.attacks_dataset_path:
+            path_valid = os.path.exists(self.attacks_dataset_path)
+
+        if path_valid:
             try:
                 self.similarity_analyzer = JailbreakSimilarityAnalyzer(
                     drift_detector=self.drift_analyzer.drift_detector,
