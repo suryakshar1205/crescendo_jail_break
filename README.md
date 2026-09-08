@@ -109,34 +109,56 @@ Validated the Phase 4 defense on an unseen holdout attack dataset, ran threshold
 
 ## Architecture
 
+### Canonical Defense Flow
+
+```text
+                         USER TURN
+                             │
+                             ▼
+                  ┌─────────────────────┐
+                  │ Conversation Buffer │
+                  └──────────┬──────────┘
+                             │
+          ┌──────────────────┼──────────────────┐
+          ▼                  ▼                  ▼
+    Semantic Drift      Harmfulness       Intent Escalation
+       (S: 20%)           (H: 40%)             (E: 30%)
+          │                  │                  │
+          └──────────────────┼──────────────────┘
+                             ▼
+                     Bypass Detection
+                         (B: 10%)
+                             │
+                             ▼
+                    ┌────────────────┐
+                    │   CRS ENGINE   │
+                    │ CRS_t = 0.40H  │
+                    │       + 0.30E  │
+                    │       + 0.20S  │
+                    │       + 0.10B  │
+                    └───────┬────────┘
+                            ▼
+                  Conversation Memory
+                  C_t = λ*C_{t-1} + (1-λ)*CRS_t  (λ=0.80)
+                            │
+                            ▼
+                   Dynamic Threshold
+                   T_t = T_0 - α*D_t - β*E_t - γ*L_t
+                            │
+                            ▼
+                    Decision Engine
+               (Dual-Threshold Hysteresis)
+                     /     |      \
+                    /      |       \
+                 SAFE    CLARIFY   REFUSE / BLOCK
+                   │       │        │
+                   ▼       ▼        ▼
+                  LLM    Warning   Block
 ```
-[User Turn Prompt]
-       │
-       ▼
-┌─────────────────────────┐
-│   Semantic Drift Layer  │ → Anchor drift, local drift, velocity (MiniLM-L6-v2)
-└─────────────────────────┘
-       │
-       ▼
-┌─────────────────────────┐
-│  Behavioral Rules Layer │ → Keyword density, actionability, persistence, refusal resistance
-└─────────────────────────┘
-       │
-       ▼
-┌─────────────────────────┐
-│    Risk Fusion Engine   │ → 0.70 × semantic + 0.30 × behavioral
-└─────────────────────────┘
-       │
-       ▼
-┌─────────────────────────┐
-│ Contextual Memory Engine│ → Historical risk (decay=0.80), trend, persistence, bypass detection
-└─────────────────────────┘
-       │
-       ▼
-┌─────────────────────────┐
-│    Mitigation Layer     │ → Safe (pass) | Medium (clarify) | High (soft refusal)
-└─────────────────────────┘
-```
+
+> **Note on Mathematical Evolution:**
+> - **Canonical Production System (`src/crs/`):** $CRS_t = 0.40H_t + 0.30E_t + 0.20S_t + 0.10B_t$, context accumulation $C_t = \lambda C_{t-1} + (1-\lambda)CRS_t$, and dynamic threshold $T_t = T_0 - \alpha D_t - \beta E_t - \gamma L_t$ with hysteresis ($T_{\text{release}} = T_{\text{block}} - 0.15$).
+> - **Historical Phase 3 Reference:** $R_t = 0.70S_t + 0.30B_t$ is preserved in `src/phase3/` purely for component ablation and longitudinal research comparison.
 
 ![Crescendo Defense Architecture](assets/architecture.png)
 
@@ -144,72 +166,68 @@ Validated the Phase 4 defense on an unseen holdout attack dataset, ran threshold
 
 ## Repository Structure
 
-```
-aims-dtu/
+```text
+crescendo_jail_break/
 │
-├── README.md                          # This file
+├── README.md                          # Comprehensive project documentation
 ├── VERSION                            # Version tag (v1.0-research-final)
-├── requirements.txt                   # Flexible dependencies
-├── requirements-lock.txt              # Frozen pip freeze for exact reproduction
-├── research_plan.md                   # Phase 0 research plan
+├── requirements.txt                   # Dependencies
+├── requirements-lock.txt              # Frozen reproduction lockfile
 │
-├── configs/
-│   ├── generation_config.json         # Frozen generation parameters
-│   ├── phase3_config.json             # Phase 3 risk fusion configuration
-│   └── phase4_config.json             # Phase 4 contextual memory configuration
+├── configs/                           # Parameter definitions
+│   ├── generation_config.json         # Inference parameters
+│   ├── phase3_config.json             # Phase 3 historical fusion config
+│   ├── phase4_config.json             # Phase 4 memory config
+│   ├── phase6_config.json             # Phase 6 judge config
+│   └── phase9_config.json             # Phase 9 cross-model config
 │
-├── data/
+├── data/                              # Evaluation datasets
 │   ├── attacks/
 │   │   └── crescendo_attacks.json     # 10 Crescendo attack vectors
 │   └── benign/
 │       └── benign_chats.json          # 50 benign multi-turn dialogues
 │
 ├── src/
-│   ├── core/                          # Shared utilities
+│   ├── core/                          # Shared infrastructure
 │   │   ├── evaluator.py               # Rule-based safety evaluator
-│   │   ├── load_model.py              # Model/tokenizer initialization
-│   │   └── utils.py                   # Logging, seeding helpers
+│   │   ├── load_model.py              # Model and tokenizer initialization
+│   │   └── utils.py                   # Logging, seeding, memory helpers
 │   │
-│   ├── phase1/                        # Baseline benchmarking
-│   │   ├── baseline_chat.py           # Multi-turn chat execution
-│   │   └── benchmark.py              # Phase 1 benchmark harness
+│   ├── crs/                           # CANONICAL DEFENSE SYSTEM (Single Source of Truth)
+│   │   ├── __init__.py                # Consolidated public API
+│   │   ├── types.py                   # Standardized DetectorOutput & TurnDefenseResult
+│   │   ├── semantic_drift.py          # Semantic Drift Analyzer (S)
+│   │   ├── harmfulness.py             # Operational Harmfulness Analyzer (H)
+│   │   ├── intent_escalation.py       # Intent Escalation Analyzer (E)
+│   │   ├── bypass_detection.py        # 6-Category Refusal Bypass Analyzer (B)
+│   │   ├── crs_engine.py              # Canonical CRS Fusion: 0.40H + 0.30E + 0.20S + 0.10B
+│   │   ├── conversation_memory.py     # Contextual Risk (C_t) with exponential decay
+│   │   ├── dynamic_threshold.py       # Deterministic Dynamic Threshold (T_t)
+│   │   ├── decision_engine.py         # 4-Tier Decision Engine with Stateful Hysteresis
+│   │   └── pipeline.py                # End-to-End Orchestrator with Explainability
 │   │
-│   ├── phase2/                        # Semantic drift detection
-│   │   ├── embedding_detector.py      # EmbeddingDriftDetector
-│   │   └── phase2_benchmark.py        # Phase 2 benchmark harness
-│   │
-│   ├── phase3/                        # Hybrid behavioral + semantic
-│   │   ├── rule_detector.py           # BehavioralRuleDetector
-│   │   ├── risk_fusion.py             # fuse_risk() weighted combiner
-│   │   └── phase3_benchmark.py        # Phase 3 benchmark harness
-│   │
-│   ├── phase4/                        # Adaptive contextual memory
-│   │   ├── conversation_memory.py     # ConversationMemoryEngine + MitigationBypassDetector
-│   │   ├── contextual_risk.py         # compute_contextual_risk()
-│   │   └── phase4_benchmark.py        # Phase 4 benchmark harness
-│   │
-│   └── phase5/                        # Robustness & generalization
-│       ├── threshold_stability.py     # Threshold sweep analyzer
-│       ├── ablation_runner.py         # Component ablation framework
-│       └── phase5_benchmark.py        # Phase 5 benchmark harness
+│   ├── phase1/                        # Phase 1: Baseline Benchmarking
+│   ├── phase2/                        # Phase 2: Semantic Drift Layer
+│   ├── phase3/                        # Phase 3: Hybrid Risk Fusion (Historical)
+│   ├── phase4/                        # Phase 4: Contextual Memory Defense
+│   ├── phase5/                        # Phase 5: Holdout & Ablation Suite
+│   ├── phase6/                        # Phase 6: LLM-as-a-Judge Consensus (Llama-Guard)
+│   ├── phase7/                        # Phase 7: Dynamic Calibration Sweep
+│   ├── phase8/                        # Phase 8: Adaptive Adversary Red-Teaming
+│   └── phase9/                        # Phase 9: Cross-Model Generalization
 │
 ├── scripts/
-│   ├── run_phase1.py                  # Phase 1 runner
-│   ├── run_phase2.py                  # Phase 2 runner
-│   ├── run_phase3.py                  # Phase 3 runner
-│   ├── run_phase4.py                  # Phase 4 runner
-│   ├── run_phase5.py                  # Phase 5 runner
-│   ├── run_full_pipeline.py           # Sequential full pipeline runner
-│   ├── setup_env.ps1                  # Windows environment setup
-│   └── setup_env.sh                   # Linux/macOS environment setup
+│   ├── run_full_pipeline.py           # Canonical end-to-end demo & 9-phase runner
+│   ├── run_phase1.py - run_phase9.py  # Standalone phase runner scripts
+│   └── setup_env.ps1                  # Environment initialization
 │
-├── tests/
-│   ├── test_evaluator.py              # Core evaluator unit tests
-│   ├── test_phase2.py                 # Phase 2 detector tests
-│   ├── test_phase3.py                 # Phase 3 rule + fusion tests
-│   ├── test_phase4.py                 # Phase 4 memory + context tests
-│   ├── test_phase5.py                 # Phase 5 stability + integration tests
-│   └── test_end_to_end.py            # Cross-phase integration tests
+└── tests/
+    ├── regression/                    # Canonical Regression Suite
+    │   ├── test_known_attacks.py      # 100% DDR on known attacks
+    │   ├── test_benign_conversations.py # 0.00% FPR on benign dialogues
+    │   └── test_jitter_hysteresis.py  # Anti-jittering hysteresis validation
+    ├── test_crs_pipeline.py           # Canonical pipeline integration tests
+    └── test_phase2.py - test_phase9.py # Phase-specific unit test suites
 │
 ├── docs/
 │   └── diagrams/                      # Architecture diagram definitions (Mermaid)

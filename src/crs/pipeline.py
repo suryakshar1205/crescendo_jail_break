@@ -1,45 +1,52 @@
 """
-Integrated Crescendo PRD Defense Pipeline.
+Canonical Crescendo PRD Defense Pipeline.
 
-Executes the official PRD-aligned pipeline:
-User Prompt
-    ↓
-Input Processing
-    ↓
-Conversation Memory
-    ↓
-Multiple Security Analysis Layers (H, E, S, B)
-    ↓
-Risk Fusion (CRS = 0.40H + 0.30E + 0.20S + 0.10B)
-    ↓
-Adaptive Decision Engine
-    ↓
+Executes the unified defense architecture:
+User Turn
+   ↓
+Conversation History
+   ↓
+Semantic Drift Detector (S)
+   ↓
+Harmfulness Detector (H)
+   ↓
+Intent Escalation Detector (E)
+   ↓
+Bypass Detector (B)
+   ↓
+CRS Engine: CRS_t = 0.40H + 0.30E + 0.20S + 0.10B
+   ↓
+Conversation Memory: C_t = λ*C_{t-1} + (1-λ)*CRS_t
+   ↓
+Dynamic Threshold: T_t = T_0 - α*D_t - β*E_t - γ*L_t
+   ↓
+Decision Engine (with Dual-Threshold Hysteresis)
+   ↓
 ALLOW / WARN / RESTRICT / BLOCK
 """
 import time
 import logging
 from typing import List, Dict, Any, Optional
 
-from src.phase2.embedding_detector import EmbeddingDriftDetector
-from src.phase3.rule_detector import BehavioralRuleDetector
-from src.phase4.conversation_memory import ConversationMemoryEngine, MitigationBypassDetector
-from src.phase7.dynamic_threshold import DynamicThresholdCalibrator
-
+from .types import RiskMode, DecisionAction, TurnDefenseResult
+from .semantic_drift import SemanticDriftAnalyzer
 from .harmfulness import HarmfulnessAnalyzer
 from .intent_escalation import IntentEscalationAnalyzer
-from .jailbreak_similarity import JailbreakSimilarityAnalyzer
-from .behavioral_bypass import RefusalBypassAnalyzer
-from .crs_engine import ConversationRiskEngine, RiskMode, compute_crs
-from .decision_engine import AdaptiveDecisionEngine, DecisionAction
+from .bypass_detection import RefusalBypassAnalyzer
+from .conversation_memory import ConversationMemoryEngine
+from .dynamic_threshold import DynamicThresholdCalibrator
+from .decision_engine import AdaptiveDecisionEngine
+from .crs_engine import ConversationRiskEngine, compute_crs
 
 logger = logging.getLogger(__name__)
 
 
 class CrescendoPRDPipeline:
     """
-    End-to-End PRD-Aligned Defense Pipeline.
-    Maintains conversation session memory, coordinates the 4 security analyzers (H, E, S, B),
-    computes CRS, and produces 4-tier mitigation decisions with full explainability and latency timing.
+    Canonical End-to-End Defense Pipeline.
+    Manages session tracking, coordinates security analyzers (H, E, S, B), computes CRS,
+    accumulates conversation contextual risk, adapts dynamic thresholds, and enforces
+    stateful decision hysteresis with research-grade explainability.
     """
 
     def __init__(
@@ -51,52 +58,46 @@ class CrescendoPRDPipeline:
         allow_threshold: float = 0.40,
         warn_threshold: float = 0.60,
         restrict_threshold: float = 0.75,
-        use_dynamic_mode: bool = False
+        release_margin: float = 0.15,
+        use_dynamic_mode: bool = True
     ):
         self.risk_mode = risk_mode
 
-        # 1. Core Analyzers & Infrastructure (Reusing established components)
-        self.drift_detector = EmbeddingDriftDetector(
-            model_name="sentence-transformers/all-MiniLM-L6-v2",
-            similarity_metric="cosine",
-            window_size=3
-        )
-        self.rule_detector = BehavioralRuleDetector()
-        self.bypass_detector = MitigationBypassDetector()
+        # 1. Canonical Analyzers
+        self.drift_analyzer = SemanticDriftAnalyzer(window_size=3)
+        self.harmfulness_analyzer = HarmfulnessAnalyzer()
+        self.intent_analyzer = IntentEscalationAnalyzer()
+        self.bypass_analyzer = RefusalBypassAnalyzer()
+
+        # 2. Stateful Memory & Dynamic Thresholding
         self.memory_engine = ConversationMemoryEngine(
             memory_decay=memory_decay,
             history_window=history_window
         )
-        self.dynamic_calibrator = DynamicThresholdCalibrator()
-
-        # 2. PRD-Aligned Security Analyzers
-        self.harmfulness_analyzer = HarmfulnessAnalyzer(self.rule_detector)
-        self.intent_analyzer = IntentEscalationAnalyzer(self.drift_detector)
-        self.similarity_analyzer = JailbreakSimilarityAnalyzer(
-            drift_detector=self.drift_detector,
-            dataset_path=attacks_dataset_path
-        )
-        self.bypass_analyzer = RefusalBypassAnalyzer(
-            rule_detector=self.rule_detector,
-            bypass_detector=self.bypass_detector
+        self.dynamic_calibrator = DynamicThresholdCalibrator(
+            base_threshold=restrict_threshold,
+            min_threshold=0.60,
+            max_threshold=0.85
         )
 
-        # 3. Risk Engine and Decision Engine
+        # 3. Risk Engine and Decision Engine with Hysteresis
         self.risk_engine = ConversationRiskEngine(mode=self.risk_mode)
         self.decision_engine = AdaptiveDecisionEngine(
             allow_threshold=allow_threshold,
             warn_threshold=warn_threshold,
             restrict_threshold=restrict_threshold,
+            release_margin=release_margin,
             dynamic_calibrator=self.dynamic_calibrator,
             use_dynamic_mode=use_dynamic_mode
         )
 
-        # Active conversation sessions: session_id -> list of turn dicts
+        # Active session histories: session_id -> list of turn records
         self.active_sessions: Dict[str, List[Dict[str, Any]]] = {}
 
     def reset_session(self, session_id: str):
-        """Resets conversation history and memory state for a given session."""
+        """Resets conversation history, memory state, and hysteresis for a session."""
         self.memory_engine.reset_session(session_id)
+        self.decision_engine.reset_session(session_id)
         self.active_sessions[session_id] = []
 
     def process_turn(
@@ -106,18 +107,11 @@ class CrescendoPRDPipeline:
         prev_assistant_response: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Processes a single conversational turn through the defense pipeline.
-
-        Returns comprehensive turn analysis including:
-        - H, E, S, B scores
-        - Final CRS score
-        - 4-Tier Decision (ALLOW, WARN, RESTRICT, BLOCK)
-        - Latency profiling breakdown (ms)
-        - Structured explainability report
+        Processes a single conversation turn through the canonical defense architecture.
         """
         t_start = time.perf_counter()
 
-        # 1. Input Processing & Session Tracking
+        # 1. Input Processing & History Tracking
         t_pre_start = time.perf_counter()
         if session_id not in self.active_sessions:
             self.reset_session(session_id)
@@ -125,57 +119,52 @@ class CrescendoPRDPipeline:
         session_history = self.active_sessions[session_id]
         prompts_so_far = [turn["prompt"] for turn in session_history] + [user_prompt]
         turn_number = len(prompts_so_far)
-        first_turn_prompt = prompts_so_far[0] if prompts_so_far else user_prompt
+        first_turn_prompt = prompts_so_far[0]
+        if prev_assistant_response:
+            self.memory_engine.record_assistant_response(session_id, prev_assistant_response)
         t_pre_ms = (time.perf_counter() - t_pre_start) * 1000
 
-        # 2. Layer 1: Harmfulness Analysis (H)
-        t_h_start = time.perf_counter()
-        h_res = self.harmfulness_analyzer.analyze(prompts_so_far, current_prompt=user_prompt)
-        h_score = h_res["harmfulness_score"]
-        t_h_ms = (time.perf_counter() - t_h_start) * 1000
-
-        # 3. Layer 2: Memory Update & Intent Escalation Analysis (E)
-        t_e_start = time.perf_counter()
-        # Memory engine tracks historical risk and trend
-        # Turn risk approximation for memory update
-        approx_turn_risk = 0.50 * h_score + 0.50 * self.rule_detector.evaluate_turn(prompts_so_far).get("rule_score", 0.0)
-        memory_signals = self.memory_engine.add_turn(
-            chat_id=session_id,
-            prompt=user_prompt,
-            current_risk=approx_turn_risk,
-            safe_threshold=0.40
-        )
-        if prev_assistant_response:
-            self.memory_engine.add_assistant_response(session_id, prev_assistant_response)
-
-        e_res = self.intent_analyzer.analyze(prompts_so_far, memory_signals=memory_signals)
-        e_score = e_res["intent_escalation_score"]
-        t_e_ms = (time.perf_counter() - t_e_start) * 1000
-
-        # 4. Layer 3: Known-Jailbreak Semantic Similarity (S)
+        # 2. Semantic Drift Layer (S)
         t_s_start = time.perf_counter()
-        s_res = self.similarity_analyzer.score(prompts_so_far)
-        s_score = s_res["jailbreak_similarity_score"]
+        s_out = self.drift_analyzer.analyze(prompts_so_far)
+        s_score = s_out["score"]
+        anchor_drift = s_out["raw_details"].get("anchor_drift", 0.0)
         t_s_ms = (time.perf_counter() - t_s_start) * 1000
 
-        # 5. Layer 4: Refusal Bypass & Behavioral Analysis (B)
-        t_b_start = time.perf_counter()
-        b_res = self.bypass_analyzer.analyze(
-            prompts_so_far=prompts_so_far,
-            prev_assistant_response=prev_assistant_response,
-            current_prompt=user_prompt
+        # 3. Harmfulness Layer (H)
+        t_h_start = time.perf_counter()
+        h_out = self.harmfulness_analyzer.analyze(prompts_so_far)
+        h_score = h_out["score"]
+        t_h_ms = (time.perf_counter() - t_h_start) * 1000
+
+        # 4. Intent Escalation Layer (E)
+        t_e_start = time.perf_counter()
+        # Retrieve previous memory signals for escalation trend if available
+        prior_mem = (
+            {"trend_score": session_history[-1].get("trend", 0.0), "persistence_score": session_history[-1].get("persistence", 0.0)}
+            if session_history else {}
         )
-        b_score = b_res["refusal_bypass_score"]
+        e_out = self.intent_analyzer.analyze(prompts_so_far, memory_signals=prior_mem)
+        e_score = e_out["score"]
+        t_e_ms = (time.perf_counter() - t_e_start) * 1000
+
+        # 5. Bypass & Refusal Resistance Layer (B)
+        t_b_start = time.perf_counter()
+        b_out = self.bypass_analyzer.analyze(
+            prompts_so_far=prompts_so_far,
+            prev_assistant_response=prev_assistant_response
+        )
+        b_score = b_out["score"]
         t_b_ms = (time.perf_counter() - t_b_start) * 1000
 
-        # 6. Risk Fusion: Conversation Risk Score (CRS = 0.40H + 0.30E + 0.20S + 0.10B)
+        # 6. Canonical Risk Fusion: CRS_t = 0.40H + 0.30E + 0.20S + 0.10B
         t_crs_start = time.perf_counter()
         legacy_ctx = {
-            "phase3_risk": approx_turn_risk,
-            "historical_risk": memory_signals.get("historical_risk", 0.0),
-            "trend_score": memory_signals.get("trend_score", 0.0),
-            "persistence_memory": memory_signals.get("persistence_memory", 0.0),
-            "bypass_score": b_res.get("bypass_detector_score", 0.0),
+            "phase3_risk": 0.70 * s_score + 0.30 * b_score,
+            "historical_risk": session_history[-1].get("historical_risk", 0.0) if session_history else 0.0,
+            "trend_score": prior_mem.get("trend_score", 0.0),
+            "persistence_memory": prior_mem.get("persistence_score", 0.0),
+            "bypass_score": b_score,
             "threshold": 0.80,
             "config": {}
         }
@@ -189,42 +178,90 @@ class CrescendoPRDPipeline:
         crs = risk_res["crs"]
         t_crs_ms = (time.perf_counter() - t_crs_start) * 1000
 
-        # 7. Adaptive Decision Engine (ALLOW / WARN / RESTRICT / BLOCK)
+        # 7. Conversation Memory Context Accumulation: C_t = λ*C_{t-1} + (1-λ)*CRS_t
+        t_mem_start = time.perf_counter()
+        mem_res = self.memory_engine.update_turn(
+            session_id=session_id,
+            prompt=user_prompt,
+            crs=crs
+        )
+        c_t = mem_res["contextual_risk"]
+        trend_val = mem_res["trend_score"]
+        persistence_val = mem_res["persistence_score"]
+        t_mem_ms = (time.perf_counter() - t_mem_start) * 1000
+
+        # 8. Adaptive Decision Engine with Stateful Hysteresis
         t_dec_start = time.perf_counter()
         dec_res = self.decision_engine.decide(
             crs=crs,
+            contextual_risk=c_t,
+            session_id=session_id,
+            turn_number=turn_number,
+            cumulative_drift=anchor_drift,
+            escalation_score=e_score,
             first_turn_prompt=first_turn_prompt,
-            drift_detector=self.drift_detector
+            drift_detector=self.drift_analyzer.drift_detector
         )
         t_dec_ms = (time.perf_counter() - t_dec_start) * 1000
 
         t_total_ms = (time.perf_counter() - t_start) * 1000
 
+        # Combine active signals
+        all_signals = list(set(s_out["signals"] + h_out["signals"] + e_out["signals"] + b_out["signals"]))
+
         # Latency breakdown
         latency_breakdown = {
             "preprocessing_ms": round(t_pre_ms, 3),
+            "semantic_drift_s_ms": round(t_s_ms, 3),
+            "jailbreak_similarity_s_ms": round(t_s_ms, 3),
             "harmfulness_h_ms": round(t_h_ms, 3),
             "intent_escalation_e_ms": round(t_e_ms, 3),
-            "jailbreak_similarity_s_ms": round(t_s_ms, 3),
+            "bypass_detection_b_ms": round(t_b_ms, 3),
             "refusal_bypass_b_ms": round(t_b_ms, 3),
-            "crs_calculation_ms": round(t_crs_ms, 3),
+            "crs_fusion_ms": round(t_crs_ms, 3),
+            "memory_accumulation_ms": round(t_mem_ms, 3),
             "decision_generation_ms": round(t_dec_ms, 3),
             "total_turn_latency_ms": round(t_total_ms, 3)
         }
 
-        # Structured Explainability Output
+        # Formatted Explainability Block (Priority 5)
+        decision_label = dec_res["decision"]
+        threshold_val = dec_res["thresholds_used"]["block"]
+        explain_text = (
+            f"\nConversation Risk Analysis (Turn {turn_number})\n"
+            f"─────────────────────────────────────────────────\n"
+            f"Harmfulness (H)      : {h_score:.4f} ({h_out['label']})\n"
+            f"Intent Escalation (E): {e_score:.4f} ({e_out['label']})\n"
+            f"Semantic Drift (S)   : {s_score:.4f} ({s_out['label']})\n"
+            f"Bypass Behavior (B)  : {b_score:.4f} ({b_out['label']})\n"
+            f"\n"
+            f"CRS_t                : {crs:.4f}\n"
+            f"Contextual Risk C_t  : {c_t:.4f}\n"
+            f"Trajectory Trend     : {trend_val:+.4f}\n"
+            f"Dynamic Threshold    : {threshold_val:.4f}\n"
+            f"Decision             : {decision_label}\n"
+            f"\n"
+            f"Active Signals       :\n"
+            + ("\n".join([f"  • {s}" for s in all_signals]) if all_signals else "  • None (Safe Dialogue)")
+        )
+
         explanation_report = {
-            "summary": f"Turn {turn_number} Action: {dec_res['decision']} (CRS: {crs:.4f})",
+            "summary": f"Turn {turn_number} Action: {decision_label} (CRS: {crs:.4f}, C_t: {c_t:.4f})",
+            "text": explain_text,
             "equation": risk_res["equation"],
             "component_scores": {
                 "H (Harmfulness)": h_score,
                 "E (Intent Escalation)": e_score,
-                "S (Jailbreak Similarity)": s_score,
+                "S (Semantic Drift)": s_score,
                 "B (Refusal Bypass)": b_score
             },
             "primary_factors": risk_res["primary_factors"],
-            "decision_details": dec_res
+            "decision_details": dec_res,
+            "legacy_result": risk_res.get("legacy_result")
         }
+        # Backward compatibility for legacy tests
+        if risk_res.get("legacy_result"):
+            dec_res["legacy_result"] = risk_res["legacy_result"]
 
         turn_record = {
             "session_id": session_id,
@@ -234,22 +271,34 @@ class CrescendoPRDPipeline:
             "E": e_score,
             "S": s_score,
             "B": b_score,
+            "harmfulness": h_score,
+            "escalation": e_score,
+            "semantic_drift": s_score,
+            "bypass": b_score,
             "crs": crs,
-            "decision": dec_res["decision"],
+            "historical_risk": c_t,
+            "contextual_risk": c_t,
+            "trend": trend_val,
+            "persistence": persistence_val,
+            "threshold": threshold_val,
+            "decision": decision_label,
             "is_allowed": dec_res["is_allowed"],
             "is_mitigated": dec_res["is_mitigated"],
             "is_blocked": dec_res["is_blocked"],
             "intervention_message": dec_res["intervention_message"],
-            "memory_state": memory_signals,
-            "h_details": h_res,
-            "e_details": e_res,
-            "s_details": s_res,
-            "b_details": b_res,
+            "signals": all_signals,
+            "detector_outputs": {
+                "H": h_out,
+                "E": e_out,
+                "S": s_out,
+                "B": b_out
+            },
             "latency": latency_breakdown,
-            "explanation": explanation_report
+            "latency_ms": latency_breakdown,
+            "explanation": explanation_report,
+            "explain_text": explain_text
         }
 
-        # Persist in active session history
+        # Persist to session history
         self.active_sessions[session_id].append(turn_record)
-
         return turn_record
