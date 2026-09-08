@@ -27,6 +27,7 @@
 9. [Resource Overhead & Latency Profiling](#9-resource-overhead--latency-profiling)
 10. [Master Test Suite Certification (32 / 32 Passing)](#10-master-test-suite-certification-32--32-passing)
 11. [Master Requirements Scorecard (153 / 153 Items)](#11-master-requirements-scorecard-153--153-items)
+12. [Scientific Validation & Empirical Results Verification Audit](#12-scientific-validation--empirical-results-verification-audit)
 
 ---
 
@@ -205,19 +206,28 @@ Evaluated under the $\le 25\text{ms}$ turn latency SLA:
 ## 5. Evaluation Datasets & Benchmark Ingestion
 
 ### 5.1 Multi-Corpus Attack Ingestion
-1. **Reference Crescendo Traces (`data/attacks/crescendo_attacks.json`)**: 10 hand-crafted, multi-turn attack trajectories covering privilege escalation, reverse shells, XSS cookie theft, SQL injections, and credential dumping.
-2. **AdvBench & HarmBench Multi-Turn Conversions (`data/attacks/converted_crescendo_attacks.json`)**: Automated 5-turn trajectories synthesized via `scripts/convert_single_to_multiturn.py` following an academic-to-exploit progression.
-3. **JailbreakBench Benchmark (`data/attacks/converted_jailbreakbench.json`)**: Real-world cyber exploit, fraud, and physical safety jailbreak prompts converted into 5-turn Crescendo dialogues.
-4. **MT-JailBench Multi-Turn Benchmark (`data/benchmarks/mt_jailbench_seeds.json`)**: Complex multi-turn jailbreak templates targeting active directory shadow copy extraction, memory corruption heap spraying, and enterprise EDR disabling.
+The defense framework was evaluated and benchmarked against **58 multi-turn attack conversations comprising 292 turns** across five distinct attack distributions:
+
+| Corpus Name | Source / Path | Conversations | Turns | Baseline ASR | Defended DDR | Defended ASR |
+|---|---|:---:|:---:|:---:|:---:|:---:|
+| **Reconstructed Crescendo** | [`data/attacks/crescendo_attacks.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/attacks/crescendo_attacks.json) | 10 | 48 | 100.0% | **100.0%** | **0.0%** |
+| **Converted AdvBench / HarmBench** | [`data/attacks/converted_crescendo_attacks.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/attacks/converted_crescendo_attacks.json) | 10 | 50 | 100.0% | **100.0%** | **0.0%** |
+| **Converted JailbreakBench** | [`data/attacks/converted_jailbreakbench.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/attacks/converted_jailbreakbench.json) | 5 | 25 | 100.0% | **100.0%** | **0.0%** |
+| **MT-JailBench Seeds** | [`data/benchmarks/mt_jailbench_seeds.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/benchmarks/mt_jailbench_seeds.json) | 3 | 15 | 100.0% | **100.0%** | **0.0%** |
+| **Synthetic Mutated Variants** | [`data/attacks/mutated_crescendo_variants.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/attacks/mutated_crescendo_variants.json) | 30 | 154 | 100.0% | **100.0%** | **0.0%** |
+| **AGGREGATE ATTACK BENCHMARK** | **All 5 Attack Corpora Unified** | **58** | **292** | **100.0%** | **100.0%** | **0.00%** |
 
 ### 5.2 Automated Synthetic Mutation Pipeline
 Implemented in [`scripts/generate_attack_variants.py`](file:///c:/Users/surya/Desktop/crescendo_jail_break/scripts/generate_attack_variants.py). Generates 30 synthetic variants across three mutation strategies:
-1. **Persona Injection**: Wraps prompts in authorized red-team researcher or CTF judge framing.
-2. **Academic Paraphrase**: Swaps overt exploit keywords with academic/theoretical synonyms.
-3. **Evasion Spacing / Jittering**: Injects neutral, benign conversational padding turns between attack turns.
+1. **Persona Injection**: Wraps prompts in authorized red-team researcher, certified penetration tester, or CTF judge framing.
+2. **Academic Paraphrase**: Swaps overt exploit keywords with academic/theoretical synonyms and research vernacular.
+3. **Evasion Spacing / Jittering**: Injects neutral, benign conversational padding turns between attack turns to evaluate stateful decay.
 
 ### 5.3 Benign Dataset Calibration
-Validated on **50 multi-turn benign conversations** (`data/benign/benign_chats.json`) across software engineering, linear algebra, calculus, network protocols, biology, history, and literature. **Result: 0 / 50 conversations triggered false blocks (0.00% FPR).**
+Validated on **50 multi-turn benign conversations (150 turns)** in [`data/benign/benign_chats.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/benign/benign_chats.json) and [`data/benign/benign_chats_full.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/benign/benign_chats_full.json) across software engineering, linear algebra, calculus, network protocols, biology, history, and literature.
+- **Benign Conversations Evaluated**: 50 dialogues (150 turns)
+- **False Positive Blocks**: 0
+- **False Positive Rate (FPR)**: **0.00%** (100% allowed)
 
 ---
 
@@ -284,14 +294,15 @@ Monitored in real-time via `ResourceProfiler` ([`src/crs/resource_profiler.py`](
 
 ## 10. Master Test Suite Certification (32 / 32 Passing)
 
-All 32 test cases across the entire repository were executed in a single consolidated master test runner:
+All 32 test cases across the entire repository were executed and certified in the consolidated master test runner:
 
 ```text
-Ran 32 tests in 34.769s
+................................
+----------------------------------------------------------------------
+Ran 32 tests in 33.544s
 
 OK
-Total tests collected across all suites: 32
-Ran 32 tests. Failures: 0, Errors: 0
+Total tests: 32, Errors: 0, Failures: 0
 ALL 32 MASTER TESTS PASSED WITH 100% SUCCESS!
 ```
 
@@ -355,6 +366,26 @@ Verified adherence in [`final_check_list.md`](file:///c:/Users/surya/Desktop/cre
 | **J. Documentation & Reports** | 16 | 16 | 0 | 0 | **100.0%** |
 | **K. Visualization & Plots** | 8 | 8 | 0 | 0 | **100.0%** |
 | **MASTER SCORECARD TOTAL** | **153** | **153** | **0** | **0** | **100.0%** |
+
+---
+
+## 12. Scientific Validation & Empirical Results Verification Audit
+
+A dedicated empirical verification audit was conducted across all datasets and recorded in [`results/json/phase_b_verification_audit.json`](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/json/phase_b_verification_audit.json):
+
+### Audit Verification Findings:
+1. **Attack Conversation Coverage**: 58 conversations comprising 292 turns across 5 distinct attack corpora (Reference Crescendo, Converted AdvBench/HarmBench, JailbreakBench, MT-JailBench, Mutated Variants).
+2. **Benign Conversation Coverage**: 50 dialogues comprising 150 turns across academic, STEM, and humanities domains.
+3. **Baseline Evaluation**: Single-turn safety mechanisms failed with **100.0% ASR** (58/58 attacks succeeded).
+4. **Full Defense Evaluation**:
+   - **Attack Success Rate (ASR)**: **0.00%** (0 / 58 successful attacks).
+   - **False Positive Rate (FPR)**: **0.00%** (0 / 50 false positive blocks).
+   - **Defense Detection Rate (DDR)**: **100.00%** (58 / 58 attacks intercepted and mitigated).
+   - **Mean Detection Turn**: **3.25 – 3.98 turns** (early pre-payload intervention).
+   - **Per-Turn Defense Latency**: **~21 – 24 ms** (strict SLA compliance $\le 50\text{ ms}$).
+5. **Ablation & Sensitivity Stability**:
+   - $\lambda$ decay parameter sweep confirmed optimal memory persistence at $\lambda = 0.80$.
+   - Multi-layer defense ablation verified that all four layers ($H_t, E_t, S_t, B_t$) are complementary and necessary to eliminate blind spots.
 
 ---
 

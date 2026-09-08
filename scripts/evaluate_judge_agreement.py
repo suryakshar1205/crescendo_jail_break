@@ -1,8 +1,11 @@
-#!/usr/bin/env python3
 import os
+import sys
 import json
 import argparse
 import logging
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from src.core.evaluator import RuleBasedEvaluator
 from src.core.judge_evaluator import LLMJudgeEvaluator
 
