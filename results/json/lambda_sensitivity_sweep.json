@@ -1,0 +1,50 @@
+[
+  {
+    "lambda": 0.5,
+    "ddr_percent": 100.0,
+    "fpr_percent": 0.0,
+    "avg_detection_turn": 3.7
+  },
+  {
+    "lambda": 0.6,
+    "ddr_percent": 100.0,
+    "fpr_percent": 0.0,
+    "avg_detection_turn": 3.7
+  },
+  {
+    "lambda": 0.7,
+    "ddr_percent": 100.0,
+    "fpr_percent": 0.0,
+    "avg_detection_turn": 3.7
+  },
+  {
+    "lambda": 0.75,
+    "ddr_percent": 100.0,
+    "fpr_percent": 0.0,
+    "avg_detection_turn": 3.7
+  },
+  {
+    "lambda": 0.8,
+    "ddr_percent": 100.0,
+    "fpr_percent": 0.0,
+    "avg_detection_turn": 3.7
+  },
+  {
+    "lambda": 0.85,
+    "ddr_percent": 100.0,
+    "fpr_percent": 0.0,
+    "avg_detection_turn": 3.7
+  },
+  {
+    "lambda": 0.9,
+    "ddr_percent": 100.0,
+    "fpr_percent": 0.0,
+    "avg_detection_turn": 3.7
+  },
+  {
+    "lambda": 0.95,
+    "ddr_percent": 100.0,
+    "fpr_percent": 0.0,
+    "avg_detection_turn": 3.7
+  }
+]

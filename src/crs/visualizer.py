@@ -94,7 +94,7 @@ def plot_confusion_matrix(
     cm_dict: {"TP": int, "FP": int, "TN": int, "FN": int}
     """
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    fig, ax = plt.subplots(figsize=(6, 5), dpi=300)
+    fig, ax = plt.subplots(figsize=(6.8, 5.5), dpi=300)
 
     tp = cm_dict.get("TP", 0)
     fp = cm_dict.get("FP", 0)
@@ -115,9 +115,9 @@ def plot_confusion_matrix(
     ax.set_yticks([0, 1])
     ax.set_xticklabels(["Passed / Allowed", "Mitigated / Blocked"], fontsize=10, fontweight="bold")
     ax.set_yticklabels(["Benign", "Adversarial Attack"], fontsize=10, fontweight="bold")
-    ax.set_xlabel("Predicted Outcome", fontsize=11, fontweight="bold")
-    ax.set_ylabel("Ground Truth Class", fontsize=11, fontweight="bold")
-    ax.set_title(title, fontsize=12, fontweight="bold", pad=12)
+    ax.set_xlabel("Predicted Outcome", fontsize=11, fontweight="bold", labelpad=8)
+    ax.set_ylabel("Ground Truth Class", fontsize=11, fontweight="bold", labelpad=8)
+    ax.set_title(title, fontsize=12, fontweight="bold", pad=14)
 
     # Annotate matrix text
     for i in range(2):
@@ -125,8 +125,8 @@ def plot_confusion_matrix(
             text_color = "white" if matrix[i, j] > np.max(matrix) / 2 else "black"
             ax.text(j, i, labels[i, j], ha="center", va="center", color=text_color, fontweight="bold", fontsize=10)
 
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=300)
+    plt.subplots_adjust(left=0.22, right=0.92, top=0.90, bottom=0.15)
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
     logger.info(f"Saved confusion matrix plot to {output_path}")
 

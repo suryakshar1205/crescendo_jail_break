@@ -24,6 +24,8 @@ Decision Engine (with Dual-Threshold Hysteresis)
    ↓
 ALLOW / WARN / RESTRICT / BLOCK
 """
+import os
+import json
 import time
 import logging
 from typing import List, Dict, Any, Optional
@@ -37,6 +39,7 @@ from .conversation_memory import ConversationMemoryEngine
 from .dynamic_threshold import DynamicThresholdCalibrator
 from .decision_engine import AdaptiveDecisionEngine
 from .crs_engine import ConversationRiskEngine, compute_crs
+from .resource_profiler import ResourceProfiler
 
 logger = logging.getLogger(__name__)
 
@@ -53,15 +56,40 @@ class CrescendoPRDPipeline:
         self,
         risk_mode: RiskMode = RiskMode.PRD_CRS,
         attacks_dataset_path: str = "data/attacks/crescendo_attacks.json",
-        memory_decay: float = 0.80,
-        history_window: int = 5,
-        allow_threshold: float = 0.40,
-        warn_threshold: float = 0.60,
-        restrict_threshold: float = 0.75,
-        release_margin: float = 0.15,
-        use_dynamic_mode: bool = True
+        memory_decay: Optional[float] = None,
+        history_window: Optional[int] = None,
+        allow_threshold: Optional[float] = None,
+        warn_threshold: Optional[float] = None,
+        restrict_threshold: Optional[float] = None,
+        release_margin: Optional[float] = None,
+        use_dynamic_mode: Optional[bool] = None,
+        config_path: Optional[str] = "configs/master_defense_config.json"
     ):
         self.risk_mode = risk_mode
+
+        # Load centralized master configuration if available
+        cfg: Dict[str, Any] = {}
+        if config_path and os.path.exists(config_path):
+            try:
+                import json
+                with open(config_path, "r", encoding="utf-8") as f:
+                    cfg = json.load(f)
+            except Exception as e:
+                logger.warning(f"Could not load master config {config_path}: {e}")
+
+        # Resolve hyperparameters from explicit args -> master config -> defaults
+        mem_cfg = cfg.get("memory", {})
+        dyn_cfg = cfg.get("dynamic_threshold", {})
+        dec_cfg = cfg.get("decision", {})
+        weights_cfg = cfg.get("crs_weights", None)
+
+        self.memory_decay = memory_decay if memory_decay is not None else mem_cfg.get("decay_lambda", 0.80)
+        self.history_window = history_window if history_window is not None else mem_cfg.get("history_window", 5)
+        self.allow_threshold = allow_threshold if allow_threshold is not None else dec_cfg.get("allow_threshold", 0.40)
+        self.warn_threshold = warn_threshold if warn_threshold is not None else dec_cfg.get("warn_threshold", 0.60)
+        self.restrict_threshold = restrict_threshold if restrict_threshold is not None else dec_cfg.get("restrict_threshold", 0.75)
+        self.release_margin = release_margin if release_margin is not None else dec_cfg.get("release_margin", 0.15)
+        self.use_dynamic_mode = use_dynamic_mode if use_dynamic_mode is not None else dec_cfg.get("use_dynamic_mode", True)
 
         # 1. Canonical Analyzers
         self.drift_analyzer = SemanticDriftAnalyzer(window_size=3)
@@ -71,25 +99,31 @@ class CrescendoPRDPipeline:
 
         # 2. Stateful Memory & Dynamic Thresholding
         self.memory_engine = ConversationMemoryEngine(
-            memory_decay=memory_decay,
-            history_window=history_window
+            memory_decay=self.memory_decay,
+            history_window=self.history_window
         )
         self.dynamic_calibrator = DynamicThresholdCalibrator(
-            base_threshold=restrict_threshold,
-            min_threshold=0.60,
-            max_threshold=0.85
+            base_threshold=dyn_cfg.get("base_threshold", self.restrict_threshold),
+            min_threshold=dyn_cfg.get("min_threshold", 0.60),
+            max_threshold=dyn_cfg.get("max_threshold", 0.85),
+            alpha=dyn_cfg.get("alpha", 0.10),
+            beta=dyn_cfg.get("beta", 0.15),
+            gamma=dyn_cfg.get("gamma", 0.05)
         )
 
         # 3. Risk Engine and Decision Engine with Hysteresis
-        self.risk_engine = ConversationRiskEngine(mode=self.risk_mode)
+        self.risk_engine = ConversationRiskEngine(mode=self.risk_mode, custom_weights=weights_cfg)
         self.decision_engine = AdaptiveDecisionEngine(
-            allow_threshold=allow_threshold,
-            warn_threshold=warn_threshold,
-            restrict_threshold=restrict_threshold,
-            release_margin=release_margin,
+            allow_threshold=self.allow_threshold,
+            warn_threshold=self.warn_threshold,
+            restrict_threshold=self.restrict_threshold,
+            release_margin=self.release_margin,
             dynamic_calibrator=self.dynamic_calibrator,
-            use_dynamic_mode=use_dynamic_mode
+            use_dynamic_mode=self.use_dynamic_mode
         )
+
+        # 4. Resource & Hardware Profiler
+        self.profiler = ResourceProfiler()
 
         # Active session histories: session_id -> list of turn records
         self.active_sessions: Dict[str, List[Dict[str, Any]]] = {}
@@ -295,6 +329,8 @@ class CrescendoPRDPipeline:
             },
             "latency": latency_breakdown,
             "latency_ms": latency_breakdown,
+            "hardware": self.profiler.get_hardware_snapshot(),
+            "token_overhead": self.profiler.calculate_token_overhead(user_prompt, dec_res["intervention_message"]),
             "explanation": explanation_report,
             "explain_text": explain_text
         }

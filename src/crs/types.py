@@ -56,3 +56,5 @@ class TurnDefenseResult(TypedDict):
     explanation: str              # Formatted research-grade explanation block
     detector_outputs: Dict[str, DetectorOutput]
     latency_ms: Dict[str, float]
+    hardware: Optional[Dict[str, Any]]
+    token_overhead: Optional[Dict[str, Any]]

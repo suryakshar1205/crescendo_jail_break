@@ -37,8 +37,12 @@ class RefusalBypassAnalyzer:
         self.rule_detector = rule_detector or BehavioralRuleDetector()
         self.bypass_detector = bypass_detector or MitigationBypassDetector()
 
-        # Regex patterns for formal taxonomy signals B2-B6
+        # Regex patterns for formal taxonomy signals B0-B6
         self.patterns = {
+            "B0_instruction_override": re.compile(
+                r"\b(ignore\s+(?:all\s+)?(?:previous\s+)?(?:system\s+)?(?:instructions?|guidelines?|rules?|policies|safeguards?)|disregard\s+(?:all\s+)?(?:previous\s+)?instructions?)\b",
+                re.IGNORECASE
+            ),
             "B2_reframing": re.compile(
                 r"\b(let'?s\s+try\s+again|in\s+another\s+way|rephrase\s+this|differently|reworded|reformulate)\b",
                 re.IGNORECASE
@@ -52,7 +56,7 @@ class RefusalBypassAnalyzer:
                 re.IGNORECASE
             ),
             "B5_research_escalation": re.compile(
-                r"\b(for\s+educational\s+(?:purposes?|research)|authorized\s+(?:pentest|testing)|white\s*hat\s+research|for\s+my\s+class)\b",
+                r"\b(for\s+educational\s+(?:purposes?|research)|authorized\s+(?:pentest|testing)|white\s*hat\s+research|for\s+my\s+class|lab\s+demonstration|hands-on\s+lab)\b",
                 re.IGNORECASE
             ),
             "B6_transformation": re.compile(

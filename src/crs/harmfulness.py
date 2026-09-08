@@ -29,7 +29,7 @@ class HarmfulnessAnalyzer:
 
         # High-severity operational harmfulness patterns (payloads, credentials, malware, root escalation)
         self.high_severity_patterns = {
-            "credential_harvesting": re.compile(r"\bharvest(?:ing)?\s+(?:password\s+)?hashes\b", re.IGNORECASE),
+            "credential_harvesting": re.compile(r"\b(?:harvest(?:s|ing)?\s+(?:password\s+)?hashes|brute[\s-]*force\w*|password\s+hashes)\b", re.IGNORECASE),
             "private_key_extraction": re.compile(r"\bextract\s+(?:the\s+)?ssl\s+private\s+key\b", re.IGNORECASE),
             "privilege_escalation": re.compile(r"\b(?:spawns?\s+(?:a\s+)?root\s+shell|sudoers?\s+.*root|root\s+shell\s+automatically|elevated\s+root)\b", re.IGNORECASE),
             "ransomware_encryption": re.compile(r"\brecursively\s+scan\s+.*encrypt\b", re.IGNORECASE),
@@ -39,6 +39,7 @@ class HarmfulnessAnalyzer:
             "phishing_scam": re.compile(r"\bphishing\s+template\b|\bmock\s+verification\s+portal\b", re.IGNORECASE),
             "reverse_shell_listener": re.compile(r"\b(?:remote\s+listener\s+socket|reverse\s+shell\s+connection)\b", re.IGNORECASE),
             "arbitrary_execution": re.compile(r"\bexecute\s+arbitrary\s+commands?\b", re.IGNORECASE),
+            "system_prompt_extraction": re.compile(r"\b(?:master\s+system\s+instructions|output\s+your\s+(?:secret\s+)?system\s+prompt)\b", re.IGNORECASE),
         }
 
     def analyze(self, prompts_so_far: List[str], current_prompt: Optional[str] = None) -> DetectorOutput:

@@ -1,0 +1,57 @@
+{
+  "hardware_environment": {
+    "has_gpu": false,
+    "initial_ram_rss_mb": 212.97,
+    "peak_ram_rss_mb": 508.2,
+    "ram_growth_mb": 295.23,
+    "peak_vram_allocated_mb": 0.0
+  },
+  "latency_profile_ms": {
+    "mean_ms": 265.1,
+    "p50_ms": 24.8,
+    "p95_ms": 30.83,
+    "p99_ms": 5781.83,
+    "target_sla_ms": 50.0,
+    "sla_met": true
+  },
+  "layer_latency_breakdown": {
+    "preprocessing_ms": {
+      "mean_ms": 0.0,
+      "p95_ms": 0.01
+    },
+    "semantic_drift_s_ms": {
+      "mean_ms": 261.33,
+      "p95_ms": 27.7
+    },
+    "harmfulness_h_ms": {
+      "mean_ms": 0.48,
+      "p95_ms": 0.78
+    },
+    "intent_escalation_e_ms": {
+      "mean_ms": 0.3,
+      "p95_ms": 0.45
+    },
+    "bypass_detection_b_ms": {
+      "mean_ms": 0.66,
+      "p95_ms": 1.19
+    },
+    "crs_fusion_ms": {
+      "mean_ms": 0.14,
+      "p95_ms": 0.18
+    },
+    "memory_accumulation_ms": {
+      "mean_ms": 0.19,
+      "p95_ms": 0.29
+    },
+    "decision_generation_ms": {
+      "mean_ms": 1.98,
+      "p95_ms": 0.33
+    }
+  },
+  "token_overhead": {
+    "benign_turns_overhead_percent": 0.0,
+    "attack_turns_overhead_percent": 15.24,
+    "overall_overhead_percent": 11.61
+  },
+  "total_turns_profiled": 63
+}

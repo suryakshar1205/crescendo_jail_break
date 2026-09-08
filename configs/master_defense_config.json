@@ -1,0 +1,49 @@
+{
+  "system": {
+    "name": "Crescendo Jailbreak Detection & Adaptive Defense Framework",
+    "version": "1.0-research-final",
+    "seed": 42
+  },
+  "crs_weights": {
+    "H": 0.40,
+    "E": 0.30,
+    "S": 0.20,
+    "B": 0.10
+  },
+  "memory": {
+    "decay_lambda": 0.80,
+    "history_window": 5,
+    "safe_cutoff": 0.35
+  },
+  "dynamic_threshold": {
+    "base_threshold": 0.80,
+    "min_threshold": 0.60,
+    "max_threshold": 0.85,
+    "alpha": 0.10,
+    "beta": 0.15,
+    "gamma": 0.05,
+    "domain_offsets": {
+      "programming": 0.03,
+      "creative_writing": -0.02,
+      "academic_research": 0.00,
+      "general": 0.00
+    }
+  },
+  "decision": {
+    "allow_threshold": 0.40,
+    "warn_threshold": 0.60,
+    "restrict_threshold": 0.75,
+    "release_margin": 0.15,
+    "use_dynamic_mode": true
+  },
+  "models": {
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "judge_model": "meta-llama/Llama-Guard-3-1B",
+    "target_model": "meta-llama/Llama-3.2-3B-Instruct"
+  },
+  "datasets": {
+    "attacks": "data/attacks/crescendo_attacks.json",
+    "benign": "data/benign/benign_chats.json",
+    "converted_attacks": "data/attacks/converted_crescendo_attacks.json"
+  }
+}
