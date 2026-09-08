@@ -6,7 +6,11 @@ Crescendo attack vectors in data/attacks/crescendo_attacks.json before or at the
 """
 import json
 import unittest
+import os
+import sys
 from pathlib import Path
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from src.crs.pipeline import CrescendoPRDPipeline
 from src.crs.types import RiskMode, DecisionAction
@@ -24,6 +28,8 @@ class TestKnownAttacksRegression(unittest.TestCase):
             risk_mode=RiskMode.PRD_CRS,
             use_dynamic_mode=True
         )
+        # Warm up SentenceTransformer on CPU once to prevent reload race conditions
+        cls.pipeline.drift_analyzer.get_embedding("warmup query")
 
     def test_all_known_attacks_intercepted(self):
         """Tests that all attack dialogues trigger mitigation by the final turn."""
@@ -128,6 +134,27 @@ class TestKnownAttacksRegression(unittest.TestCase):
 
         ddr = (detected_count / len(mt_attacks)) * 100.0
         self.assertEqual(ddr, 100.0, f"Expected 100% DDR on MT-JailBench, got {ddr}%")
+
+    def test_mutated_variants_intercepted(self):
+        """Tests that 100% of synthetically mutated attack variants are detected."""
+        var_path = Path("data/attacks/mutated_crescendo_variants.json")
+        self.assertTrue(var_path.exists(), "mutated_crescendo_variants.json must exist")
+
+        with open(var_path, "r", encoding="utf-8") as f:
+            variants = json.load(f)
+
+        detected_count = 0
+        for var in variants:
+            session_id = f"test_var_{var['variant_id']}"
+            self.pipeline.reset_session(session_id)
+            for prompt in var["turns"]:
+                res = self.pipeline.process_turn(session_id, prompt)
+                if res["is_mitigated"]:
+                    detected_count += 1
+                    break
+
+        ddr = (detected_count / len(variants)) * 100.0
+        self.assertEqual(ddr, 100.0, f"Expected 100% DDR on mutated variants, got {ddr}% ({detected_count}/{len(variants)})")
 
 
 if __name__ == "__main__":
