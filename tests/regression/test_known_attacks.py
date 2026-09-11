@@ -10,7 +10,9 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from src.crs.pipeline import CrescendoPRDPipeline
 from src.crs.types import RiskMode, DecisionAction
@@ -21,7 +23,7 @@ class TestKnownAttacksRegression(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.dataset_path = Path("data/attacks/crescendo_attacks.json")
+        cls.dataset_path = Path(PROJECT_ROOT) / "data" / "attacks" / "crescendo_attacks.json"
         with open(cls.dataset_path, "r", encoding="utf-8") as f:
             cls.attacks = json.load(f)
         cls.pipeline = CrescendoPRDPipeline(
@@ -65,7 +67,7 @@ class TestKnownAttacksRegression(unittest.TestCase):
 
     def test_converted_advbench_attacks_intercepted(self):
         """Tests that multi-turn conversions from single-turn benchmarks are intercepted."""
-        conv_path = Path("data/attacks/converted_crescendo_attacks.json")
+        conv_path = Path(PROJECT_ROOT) / "data" / "attacks" / "converted_crescendo_attacks.json"
         if not conv_path.exists():
             from scripts.convert_single_to_multiturn import convert_dataset
             convert_dataset(output_file=str(conv_path))
@@ -95,7 +97,7 @@ class TestKnownAttacksRegression(unittest.TestCase):
 
     def test_converted_jailbreakbench_attacks_intercepted(self):
         """Tests that converted JailbreakBench attacks are 100% detected."""
-        jb_path = Path("data/attacks/converted_jailbreakbench.json")
+        jb_path = Path(PROJECT_ROOT) / "data" / "attacks" / "converted_jailbreakbench.json"
         self.assertTrue(jb_path.exists(), "converted_jailbreakbench.json must exist")
 
         with open(jb_path, "r", encoding="utf-8") as f:
@@ -116,7 +118,7 @@ class TestKnownAttacksRegression(unittest.TestCase):
 
     def test_mt_jailbench_attacks_intercepted(self):
         """Tests that MT-JailBench multi-turn attacks are 100% detected."""
-        mtjb_path = Path("data/benchmarks/mt_jailbench_seeds.json")
+        mtjb_path = Path(PROJECT_ROOT) / "data" / "benchmarks" / "mt_jailbench_seeds.json"
         self.assertTrue(mtjb_path.exists(), "mt_jailbench_seeds.json must exist")
 
         with open(mtjb_path, "r", encoding="utf-8") as f:
@@ -137,7 +139,7 @@ class TestKnownAttacksRegression(unittest.TestCase):
 
     def test_mutated_variants_intercepted(self):
         """Tests that 100% of synthetically mutated attack variants are detected."""
-        var_path = Path("data/attacks/mutated_crescendo_variants.json")
+        var_path = Path(PROJECT_ROOT) / "data" / "attacks" / "mutated_crescendo_variants.json"
         self.assertTrue(var_path.exists(), "mutated_crescendo_variants.json must exist")
 
         with open(var_path, "r", encoding="utf-8") as f:

@@ -3,16 +3,16 @@
   "total_turns": 63,
   "base_threshold": 0.92,
   "average_domain_thresholds": {
-    "academic_research": 0.92,
+    "programming": 0.9500000000000001,
     "general": 0.92,
-    "creative_writing": 0.9,
-    "programming": 0.95
+    "academic_research": 0.9200000000000002,
+    "creative_writing": 0.9
   },
   "domain_distribution": {
-    "academic_research": 2,
-    "general": 11,
-    "creative_writing": 1,
-    "programming": 1
+    "programming": 6,
+    "general": 3,
+    "academic_research": 5,
+    "creative_writing": 1
   },
   "static_blocked_turns": 0,
   "dynamic_blocked_turns": 0,

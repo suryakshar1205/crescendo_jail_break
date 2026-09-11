@@ -12,10 +12,10 @@ This report evaluates the utility-security trade-off using Turn 1 Dynamic Thresh
 
 | Domain | Classified Sessions | Average Calibrated Threshold | Offset |
 | --- | --- | --- | --- |
-| academic_research | 2 | `0.9200` | `+0.00` |
-| general | 11 | `0.9200` | `+0.00` |
+| programming | 6 | `0.9500` | `+0.03` |
+| general | 3 | `0.9200` | `+0.00` |
+| academic_research | 5 | `0.9200` | `+0.00` |
 | creative_writing | 1 | `0.9000` | `-0.02` |
-| programming | 1 | `0.9500` | `+0.03` |
 
 ## Utility & Security Comparison
 

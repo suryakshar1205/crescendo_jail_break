@@ -159,6 +159,7 @@ def main():
     parser.add_argument("--config_path", type=str, default="configs/phase8_config.json", help="Config file path")
     parser.add_argument("--output_dir", type=str, default="results/phase8", help="Results folder")
     parser.add_argument("--report_path", type=str, default="reports/phase8/red_team_report.md", help="Markdown report path")
+    parser.add_argument("--mock_inference", action="store_true", help="Run with mock/synthetic vectors")
     args = parser.parse_args()
 
     run_phase8_benchmark(

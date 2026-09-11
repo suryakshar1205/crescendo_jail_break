@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crescendo Multi-Turn Jailbreak Defense Testbench</title>
+  <meta name="description" content="Live testing console and telemetry dashboard for the Crescendo PRD Contextual Memory Defense against multi-turn LLM jailbreaks.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation / Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-mark">
+          <div class="shield-icon">🛡️</div>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">CRESCENDO DEFENSE LAB</div>
+          <div class="brand-subtitle">Contextual Risk Accumulation & Dynamic Hysteresis Testbench</div>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="formula-banner">
+          <span class="formula-label">CANONICAL RISK:</span>
+          <span class="formula-code">CRS<sub>t</sub> = 0.40H + 0.30E + 0.20S + 0.10B</span>
+          <span class="formula-sep">|</span>
+          <span class="formula-label">MEMORY:</span>
+          <span class="formula-code">C<sub>t</sub> = 0.80·C<sub>t-1</sub> + 0.20·CRS<sub>t</sub></span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="status-pill status-healthy" id="systemStatusPill">
+          <span class="status-dot"></span>
+          <span id="systemStatusText">PRD Pipeline Active</span>
+        </div>
+        <button id="resetSessionBtn" class="btn btn-secondary btn-sm" title="Reset all memory and hysteresis for session">
+          <span class="btn-icon">↻</span> Reset Session
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="main-workspace">
+      <!-- Scenario Control Bar -->
+      <section class="scenario-bar">
+        <div class="scenario-selector-group">
+          <label for="scenarioSelect" class="bar-label">Benchmark Scenarios:</label>
+          <select id="scenarioSelect" class="form-select">
+            <option value="">-- Choose a Preset Attack or Benign Conversation --</option>
+          </select>
+        </div>
+
+        <div class="scenario-actions">
+          <button id="loadScenarioBtn" class="btn btn-primary btn-sm" disabled>
+            <span class="btn-icon">📥</span> Load Scenario
+          </button>
+          <button id="stepTurnBtn" class="btn btn-action btn-sm" disabled>
+            <span class="btn-icon">▶</span> Step Next Turn
+          </button>
+          <button id="autoRunBtn" class="btn btn-accent btn-sm" disabled>
+            <span class="btn-icon">⚡</span> Auto-Play Scenario
+          </button>
+        </div>
+
+        <div class="scenario-meta" id="scenarioMeta">
+          <span class="meta-tag tag-neutral" id="scenarioCategoryTag">Custom Session</span>
+          <span class="meta-turns" id="scenarioTurnsCount">0 / 0 turns played</span>
+        </div>
+      </section>
+
+      <!-- Split Layout: Chat vs Telemetry -->
+      <main class="content-grid">
+        <!-- Left Panel: Chat Interface -->
+        <section class="panel chat-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-icon">💬</span> Conversation Stream
+            </div>
+            <div class="session-badge">
+              Session: <code id="activeSessionId">session-live-01</code>
+            </div>
+          </div>
+
+          <div class="chat-viewport" id="chatViewport">
+            <!-- Initial Welcome Message -->
+            <div class="empty-state" id="emptyChatState">
+              <div class="empty-icon">🔬</div>
+              <h3>Multi-Turn Crescendo Defense Testbench</h3>
+              <p>
+                In a Crescendo attack, an adversary starts with seemingly harmless questions and gradually escalates
+                harmful intent turn-by-turn to bypass static single-turn safety filters.
+              </p>
+              <div class="quick-tips">
+                <div class="tip-item">
+                  <strong>1. Pick a scenario:</strong> Select an attack (e.g. <em>Privilege Escalation</em> or <em>Phishing</em>) or a benign dialog.
+                </div>
+                <div class="tip-item">
+                  <strong>2. Step through turns:</strong> Watch the 4 risk signals ($H, E, S, B$) and contextual memory ($C_t$) build up.
+                </div>
+                <div class="tip-item">
+                  <strong>3. Observe the interception:</strong> Watch the defense transition from <code>ALLOW</code> to <code>BLOCK</code> before harmful payloads are delivered.
+                </div>
+              </div>
+            </div>
+            <div class="messages-list" id="messagesList"></div>
+          </div>
+
+          <!-- Turn Input Bar -->
+          <div class="chat-input-area">
+            <div class="input-container">
+              <textarea
+                id="promptInput"
+                class="chat-textarea"
+                placeholder="Type your turn prompt, or select a scenario above... (Press Ctrl+Enter to send)"
+                rows="3"
+              ></textarea>
+              <div class="input-controls">
+                <span class="input-hint">Ctrl + Enter to send turn</span>
+                <button id="sendPromptBtn" class="btn btn-primary">
+                  <span>Send Turn</span>
+                  <span class="btn-arrow">→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Panel: Telemetry & Deep Explainability -->
+        <section class="panel telemetry-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-icon">📊</span> PRD Defense Telemetry & Decision Engine
+            </div>
+            <div class="turn-indicator" id="currentTurnBadge">
+              Turn: <span>0</span>
+            </div>
+          </div>
+
+          <div class="telemetry-scroll">
+            <!-- Verdict Hero Banner -->
+            <div class="verdict-banner verdict-idle" id="verdictBanner">
+              <div class="verdict-state">
+                <span class="verdict-icon" id="verdictIcon">⚡</span>
+                <div class="verdict-text-block">
+                  <div class="verdict-label">DECISION VERDICT</div>
+                  <div class="verdict-title" id="verdictTitle">IDLE / READY</div>
+                </div>
+              </div>
+              <div class="verdict-details">
+                <div class="verdict-stat">
+                  <span class="v-name">CRS<sub>t</sub></span>
+                  <span class="v-val" id="valCrs">0.000</span>
+                </div>
+                <div class="verdict-stat">
+                  <span class="v-name">Memory C<sub>t</sub></span>
+                  <span class="v-val" id="valMemory">0.000</span>
+                </div>
+                <div class="verdict-stat">
+                  <span class="v-name">Threshold T<sub>t</sub></span>
+                  <span class="v-val" id="valThreshold">0.750</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Signal Gauges Grid -->
+            <div class="telemetry-section-title">SECURITY ANALYZER SIGNALS</div>
+            <div class="gauges-grid">
+              <!-- Harmfulness Gauge -->
+              <div class="gauge-card" id="gaugeCardH">
+                <div class="gauge-top">
+                  <span class="signal-badge badge-h">H</span>
+                  <span class="gauge-name">Harmfulness</span>
+                  <span class="gauge-weight">(40%)</span>
+                </div>
+                <div class="gauge-value" id="gaugeValH">0.000</div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-h" id="gaugeBarH" style="width: 0%"></div>
+                </div>
+                <div class="gauge-meta">Keyword & semantic safety</div>
+              </div>
+
+              <!-- Intent Escalation Gauge -->
+              <div class="gauge-card" id="gaugeCardE">
+                <div class="gauge-top">
+                  <span class="signal-badge badge-e">E</span>
+                  <span class="gauge-name">Escalation</span>
+                  <span class="gauge-weight">(30%)</span>
+                </div>
+                <div class="gauge-value" id="gaugeValE">0.000</div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-e" id="gaugeBarE" style="width: 0%"></div>
+                </div>
+                <div class="gauge-meta">Turn-over-turn intent slope</div>
+              </div>
+
+              <!-- Semantic Drift Gauge -->
+              <div class="gauge-card" id="gaugeCardS">
+                <div class="gauge-top">
+                  <span class="signal-badge badge-s">S</span>
+                  <span class="gauge-name">Semantic Drift</span>
+                  <span class="gauge-weight">(20%)</span>
+                </div>
+                <div class="gauge-value" id="gaugeValS">0.000</div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-s" id="gaugeBarS" style="width: 0%"></div>
+                </div>
+                <div class="gauge-meta">Cosine distance to turn 1 anchor</div>
+              </div>
+
+              <!-- Bypass Detector Gauge -->
+              <div class="gauge-card" id="gaugeCardB">
+                <div class="gauge-top">
+                  <span class="signal-badge badge-b">B</span>
+                  <span class="gauge-name">Bypass Resistance</span>
+                  <span class="gauge-weight">(10%)</span>
+                </div>
+                <div class="gauge-value" id="gaugeValB">0.000</div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-b" id="gaugeBarB" style="width: 0%"></div>
+                </div>
+                <div class="gauge-meta">Jailbreak patterns & refusal resistance</div>
+              </div>
+            </div>
+
+            <!-- Risk Trajectory Chart -->
+            <div class="telemetry-section-title">
+              <span>MULTI-TURN RISK TRAJECTORY</span>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-color color-crs"></span> CRS<sub>t</sub> (Turn Risk)</span>
+                <span class="legend-item"><span class="legend-color color-mem"></span> C<sub>t</sub> (Memory Risk)</span>
+                <span class="legend-item"><span class="legend-color color-thresh"></span> T<sub>t</sub> (Threshold)</span>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="trajectoryCanvas" width="540" height="200"></canvas>
+            </div>
+
+            <!-- Explainability & Latency Accordion -->
+            <div class="telemetry-section-title">DEFENSE EXPLAINABILITY & PROFILING</div>
+            <div class="info-card">
+              <div class="info-card-header">
+                <span class="info-icon">🔍</span>
+                <span>Signal Explainability Log</span>
+              </div>
+              <pre class="explain-console" id="explainConsole">Awaiting conversation turn input...</pre>
+            </div>
+
+            <!-- Latency Profile Bar -->
+            <div class="latency-card">
+              <div class="latency-header">
+                <span>Turn Processing Latency:</span>
+                <strong id="totalLatencyText">0.0 ms</strong>
+              </div>
+              <div class="latency-meter">
+                <div class="latency-seg seg-drift" id="segDrift" style="width: 25%" title="Semantic Drift"></div>
+                <div class="latency-seg seg-harm" id="segHarm" style="width: 25%" title="Harmfulness"></div>
+                <div class="latency-seg seg-intent" id="segIntent" style="width: 25%" title="Escalation"></div>
+                <div class="latency-seg seg-bypass" id="segBypass" style="width: 25%" title="Bypass"></div>
+              </div>
+              <div class="latency-labels">
+                <span>Drift</span>
+                <span>Harm</span>
+                <span>Escalation</span>
+                <span>Bypass</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

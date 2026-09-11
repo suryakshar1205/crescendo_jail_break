@@ -19,6 +19,7 @@ Usage:
     python scripts/run_phase.py --all --mock_inference
 """
 import os
+os.environ["MPLBACKEND"] = "Agg"
 import sys
 import argparse
 import subprocess
@@ -48,7 +49,7 @@ def run_single_phase(phase: int, extra_args: List[str]) -> int:
 
     # Filter flags not recognized by specific phases
     phase_args = list(extra_args)
-    if phase in (7, 8, 9) and "--mock_inference" in phase_args:
+    if phase in (7, 8) and "--mock_inference" in phase_args:
         phase_args.remove("--mock_inference")
 
     if phase == 1 and "--experiment_id" not in phase_args:
