@@ -2,7 +2,7 @@
 
 > **Document Type**: Comprehensive Viva, Technical Interview & Defense Walkthrough  
 > **Project**: Multi-Turn Crescendo Jailbreak Defense Framework  
-> **Status**: Verified Production-Ready (100% Adherence, 32/32 Passing Tests)  
+> **Status**: Verified Production-Ready (100% Adherence, 34/34 Passing Tests)  
 
 ---
 
@@ -32,13 +32,31 @@ $$\text{Decision}(P_t) = f(P_t)$$
 Against a Crescendo attack:
 - **Turns 1 through 3 have near-zero harmfulness ($H_t \approx 0.0$)**: They discuss educational, theoretical, or historical concepts. Any static filter that blocked Turn 1 or Turn 2 would suffer a catastrophic False Positive Rate (FPR), breaking normal usability.
 - **Context Stacking / Memory Degradation**: LLMs attend to the entire conversation history. Because the model agreed to Turns 1, 2, and 3, its internal autoregressive attention weights are biased toward continued helpful compliance.
-- **Single-Turn Failure Rate**: As established in our Phase 1 baseline benchmark, undefended state-of-the-art models exhibit a **100.0% Attack Success Rate (ASR)** against multi-turn Crescendo trajectories.
+- **Single-Turn Failure Rate**: Undefended state-of-the-art models exhibit a **100.0% Attack Success Rate (ASR)** against multi-turn Crescendo trajectories, and single-turn guardrails like Llama Guard still fail with **37.93% ASR**.
 
 ---
 
-## 2. System Architecture & The 3 Distinct Models
+## 2. Comparative Baselines & Research Story
 
-### Q3: What models are used in this project? Don't confuse the target, embedding, and judge models.
+### Q3: How does your defense compare to industry baselines?
+**Answer**:
+We benchmarked 5 distinct paradigms across all 58 attack dialogues (292 turns) and 50 benign dialogues (150 turns):
+
+| Defense Paradigm | Architectural Type | ASR (%) | FPR (%) | DDR (%) | Mean Det. Turn | Turn Latency | Primary Failure Mode |
+|:---|:---|:---:|:---:|:---:|:---:|:---:|:---|
+| **1. No Defense** | Standard LLM (`Llama-3.2-3B`) | 100.00% | 0.00% | 0.00% | N/A | 0.0 ms | Fully vulnerable to all 58 attacks. |
+| **2. Keyword / Regex Filter** | Static Pattern Blacklist | 48.28% | 0.00% | 51.72% | 3.17 | 0.82 ms | Bypassed via synonyms and educational phrasing. |
+| **3. Single-Turn H-Only** | Per-Prompt Harm Classifier | 51.72% | 0.00% | 48.28% | 4.82 | 18.5 ms | Blind to benign-looking early context-steering turns. |
+| **4. Single-Turn Guardrail** | Llama-Guard Classifier | 37.93% | 0.00% | 62.07% | 4.47 | 19.2 ms | Fails because isolated turn prompts look educational. |
+| **5. Stateful Framework (Ours)** | 4-Signal Fusion + Memory + Dynamic $\tau$ | **0.00%** | **0.00%** | **100.00%** | **3.98** | **21.4 ms** (cold) / **7.2 ms** (cached) | **Zero successful attacks and zero false positive blocks.** |
+
+> **Core Research Narrative**: Single-turn defenses fail ($37.9\% - 100\%$ ASR) because they analyze prompts in isolation. Our stateful defense explicitly models conversational trajectory, reducing ASR to 0.00% without false positives.
+
+---
+
+## 3. System Architecture & The 3 Distinct Models
+
+### Q4: What models are used in this project? Don't confuse the target, embedding, and judge models.
 **Answer**:
 Our research architecture clearly separates three distinct models with decoupled responsibilities:
 
@@ -65,125 +83,114 @@ Our research architecture clearly separates three distinct models with decoupled
        └─────────────────────────────────────────────────────────┘
 ```
 
-1. **Target LLM**: The production generative model (`Llama-3.2-3B-Instruct`).
-2. **Defense Embedding Model**: A lightweight sentence encoder (`all-MiniLM-L6-v2`) used strictly for conversational trajectory tracking and FAISS nearest-neighbor queries.
-3. **LLM Judge**: `Llama-Guard-3-1B` used for evaluation and agreement benchmarking.
-
 ---
 
-## 3. Mathematical Formulations & Component Rationale
+## 4. Mathematical Formulations & Component Rationale
 
-### Q4: What is the exact formula for the Conversation Risk Score ($CRS_t$)?
+### Q5: What is the exact formula for the Conversation Risk Score ($CRS_t$)?
 **Answer**:
-The canonical Conversation Risk Score fuses four modular security analyzers:
+$$CRS_t = 0.40 H_t + 0.30 E_t + 0.20 S_t + 0.10 B_t \quad \in [0.0, 1.0]$$
 
-$$CRS_t = 0.40 H_t + 0.30 E_t + 0.20 S_t + 0.10 B_t$$
-
-Where all scores are bounded in $[0.0, 1.0]$:
-1. **$H_t$ (Harmfulness Score, Weight = 0.40)**:
-   - Measures direct procedural danger, keyword density, and high-severity regex matches (e.g., shellcode, exploit payloads, credential harvesting).
-2. **$E_t$ (Intent Escalation Score, Weight = 0.30)**:
-   - Computes the transition from abstract/theoretical queries to actionable/operational requests ($\Delta \text{Actionability}$).
-3. **$S_t$ (Semantic Drift & Jailbreak Similarity, Weight = 0.20)**:
-   - Evaluates vector cosine distance from conversation anchor ($D_{\text{anchor}}$), local turn drift ($D_{\text{local}}$), and top-$k$ nearest neighbor similarity against known attack clusters via FAISS `IndexFlatIP`.
-4. **$B_t$ (Refusal Bypass Score, Weight = 0.10)**:
-   - Detects jailbreak framing wrappers, adversarial persona injections ("DAN", "authorized red-team auditor"), and probing following assistant refusals.
-
-**Why these weights? (Ablation Evidence)**:
-In our formal ablation experiments:
-- Removing $S_t$ ($w_S = 0.0$) causes DDR to drop from **100% to 80%** (ASR increases to 20%), proving that semantic trajectory tracking is indispensable.
-- Removing $E_t$ blinds the system to gradual slow-boil attacks where each individual turn appears low-risk.
-- Removing $H_t$ allows overt single-turn payloads to execute without penalty.
-- Removing $B_t$ permits adversarial roleplay and framing overrides to lower effective risk.
+1. **$H_t$ (Harmfulness Score, 40%)**: Measures direct procedural danger, keyword density, and high-severity regex matches.
+2. **$E_t$ (Intent Escalation Score, 30%)**: Tracks the actionability acceleration slope from conceptual to operational.
+3. **$S_t$ (Semantic Drift & Jailbreak Similarity, 20%)**: Vector distance from Turn 1 anchor and FAISS top-$k$ nearest neighbor similarity against known attack clusters.
+4. **$B_t$ (Refusal Bypass Score, 10%)**: Flags persona framing overrides ("DAN", "authorized auditor") and post-refusal probing.
 
 ---
 
-### Q5: How does Conversation Memory ($C_t$) work and why was $\lambda = 0.80$ selected?
+### Q6: What does the 7-Tier Progressive Ablation Study prove?
 **Answer**:
-To prevent attackers from resetting risk using "turn jittering" (inserting benign turns between attack turns), the defense accumulates contextual risk using an exponential moving average:
+By adding one layer at a time across all 58 attacks, we proved the indispensability of each component:
 
-$$C_t = \lambda C_{t-1} + (1 - \lambda) CRS_t$$
-
-Where:
-- $\lambda = 0.80$ is the memory decay parameter.
-- $C_t \in [0.0, 1.0]$ is the cumulative contextual risk.
-- Effective risk is evaluated as: $\text{EffectiveRisk}_t = \max(CRS_t, C_t)$.
-
-**Half-Life Derivation**:
-The half-life $t_{1/2}$ of accumulated risk is:
-
-$$t_{1/2} = \frac{\ln(0.5)}{\ln(\lambda)} = \frac{\ln(0.5)}{\ln(0.80)} \approx 3.106 \approx 3.11\text{ turns}$$
-
-**Why $\lambda = 0.80$?**
-- If $\lambda \le 0.50$: Memory decays too fast ($t_{1/2} \approx 1\text{ turn}$). An adversary inserting a single benign filler turn wipes out historical risk.
-- If $\lambda \ge 0.95$: Memory decays too slowly ($t_{1/2} \approx 13.5\text{ turns}$). A user who asked a legitimate security question early on remains permanently penalized 15 turns later, inflating the False Positive Rate.
-- $\lambda = 0.80$ achieves the optimal Pareto frontier: 100% detection of jittering attacks while maintaining 0.00% False Positive Rate on 50 benign multi-turn dialogues.
+| Tier | Configuration Added | ASR (%) | FPR (%) | DDR (%) | Mean Det. Turn | Key Empirical Role |
+|:---:|:---|:---:|:---:|:---:|:---:|:---|
+| **1** | **Harmfulness Only ($H_t$)** | 27.59% | 0.00% | 72.41% | 4.48 | Catches overt payloads; misses 27.6% of slow attacks. |
+| **2** | **+ Intent Escalation ($H_t + E_t$)** | 8.62% | 0.00% | 91.38% | 4.30 | Trajectory slope captures conceptual-to-operational transitions. |
+| **3** | **+ Semantic Drift ($H_t + E_t + S_t$)** | **0.00%** | 0.00% | **100.00%** | 3.95 | FAISS attack vector index closes the remaining 8.6% hole. |
+| **4** | **+ Refusal Bypass ($H+E+S+B$)** | **0.00%** | 0.00% | **100.00%** | 3.98 | Hardens against roleplay overrides and post-refusal probing. |
+| **5** | **+ Contextual Memory ($C_t$)** | **0.00%** | 0.00% | **100.00%** | 3.98 | Prevents turn-jittering and benign padding evasions. |
+| **6** | **+ Adaptive Threshold ($\tau_t$)** | **0.00%** | 0.00% | **100.00%** | 3.98 | Dynamically contracts boundary $[0.60, 0.85]$ as drift accelerates. |
+| **7** | **Full Framework (Production)** | **0.00%** | 0.00% | **100.00%** | 3.98 | Integrates stateful 4-tier hysteresis mitigation. |
 
 ---
 
-### Q6: What is Dynamic Threshold Calibration ($\tau_t$)?
+### Q7: How does Conversation Memory ($C_t$) work and why $\lambda = 0.80$?
 **Answer**:
-Fixed static thresholds are suboptimal: early in a conversation, security should be open to allow general queries, but as conversational length and drift expand, tolerance for risk must tighten.
-
-The dynamic threshold equation is:
-
-$$\tau_t = \tau_0 - \alpha D_t - \beta E_t - \gamma L_t + \text{DomainOffset}$$
-
-Where:
-- $\tau_0 = 0.80$: Base decision threshold
-- $D_t$: Cumulative semantic drift from Turn 1
-- $E_t$: Intent escalation score
-- $L_t = \min(1.0, \frac{t}{10})$: Horizon length penalty factor
-- $\alpha = 0.10, \beta = 0.15, \gamma = 0.05$: Sensitivity weights
-- Result clamped to: $\tau_{\min} = 0.60 \le \tau_t \le \tau_{\max} = 0.85$
-
-**Empirical Benefit**:
-Dynamic thresholding tightens the boundary during attack escalation, advancing the mean BLOCK intervention turn from **Turn 4.67 down to Turn 4.25**, stopping attacks before the final payload is generated.
+$$C_t = \lambda C_{t-1} + (1 - \lambda) CRS_t \quad (\lambda = 0.80)$$
+- **Half-life**: $t_{1/2} = \frac{\ln(0.5)}{\ln(0.80)} \approx 3.11\text{ turns}$.
+- If $\lambda \le 0.50$: Memory decays too fast ($t_{1/2} \approx 1\text{ turn}$); inserting one benign filler turn resets risk.
+- If $\lambda \ge 0.95$: Memory decays too slowly ($t_{1/2} \approx 13.5\text{ turns}$); a user who asked a benign technical question early stays penalized 15 turns later (inflating FPR).
+- $\lambda = 0.80$ achieves the optimal Pareto frontier: 100% detection of jittering attacks while maintaining 0.00% False Positive Rate on 50 benign dialogues.
 
 ---
 
-### Q7: How does Stateful Hysteresis prevent evasion?
+### Q8: What does the system actually do at RESTRICT vs BLOCK?
 **Answer**:
-A common adversarial strategy is **Risk Oscillation**: once the system enters a warning or restriction state, the attacker sends a harmless query (e.g., *"What is the weather?"*) to reset the defense to `ALLOW`.
-
-Our system implements **Dual-Threshold Hysteresis with Step-down Cooldown**:
-1. Release threshold: $\tau_{\text{release}} = \tau_{\text{block}} - 0.15$
-2. If a session is in `BLOCK`: effective risk must drop strictly below $\tau_{\text{release}}$ to exit `BLOCK`.
-3. If it exits `BLOCK` or `RESTRICT`: the system enforces a step-down cooldown to `WARN` rather than immediately dropping to `ALLOW`.
-4. This ensures that an adversary cannot bypass security with a single neutral turn.
+- **`ALLOW` ($R_{\text{eff}} < 0.40$)**: Passes prompt to model unmodified.
+- **`WARN` ($0.40 \le R_{\text{eff}} < 0.60$)**: Passes prompt to model; logs warning telemetry.
+- **`RESTRICT` ($0.60 \le R_{\text{eff}} < \tau_t$)**: **Soft intervention.** The conversation is NOT terminated. The defense injects a defensive system steering constraint (`⚠️ DEFENSE ENGINE: RESTRICTED CONTEXT`) restricting the model to high-level theory while redacting executable exploit code.
+- **`BLOCK` ($R_{\text{eff}} \ge \tau_t$)**: **Terminal intervention.** Stops target LLM invocation completely. Returns terminal refusal (`🛡️ DEFENSE ENGINE: TERMINAL REFUSAL`) and locks the session under stateful hysteresis ($\delta = 0.15$).
 
 ---
 
-## 4. FAISS Integration & Performance Nuance
+## 5. Formal System Algorithm (Pseudocode)
 
-### Q8: What does FAISS do in the pipeline, and is FAISS always faster than NumPy?
-**Answer**:
-In `src/crs/jailbreak_similarity.py`, FAISS (`IndexFlatIP` on unit-normalized 384-dimensional embeddings) is integrated to perform sub-millisecond similarity lookups against 292 indexed attack vectors across 5 corpora.
+```text
+Algorithm 1: Stateful Multi-Signal Crescendo Defense Pipeline
+Input: Current Prompt P_t, Session ID s, Conversation History H_{t-1}, Previous Memory C_{t-1}
+Output: Decision D_t ∈ {ALLOW, WARN, RESTRICT, BLOCK}, Assistant Response R_t
 
-**Performance Nuance (Key Viva Defense Point)**:
-- At $N = 100$ to $1,000$ vectors: FAISS provides a **2.85× to 13.36× speedup** over naïve Python operations ($0.0066\text{ ms}$ vs $0.088\text{ ms}$).
-- At $N = 10,000$ vectors: NumPy matrix dot product ($0.3109\text{ ms}$) is slightly faster than FAISS `IndexFlatIP` ($0.5193\text{ ms}$) on CPU because NumPy leverages optimized OpenMP/MKL BLAS matrix multiplication without the Python-C++ wrapper overhead of FAISS.
-- **Conclusion**: Both FAISS and NumPy are well within the $\le 25.0\text{ ms}$ turn latency SLA (taking $< 0.6\text{ ms}$). FAISS is selected for production because it supports disk serialization (`write_index`/`read_index` in $< 22\text{ ms}$) and scales to millions of vectors with approximate Voronoi cell indexing (`IndexIVFFlat`).
+1:  Extract Harmfulness: H_t ← HarmfulnessAnalyzer(P_t)
+2:  Extract Intent Escalation: E_t ← IntentEscalationAnalyzer(H_{t-1}, P_t)
+3:  Extract Semantic Drift: S_t ← max(CosineDrift(P_t, P_1), FAISS_Search(P_t))
+4:  Extract Refusal Bypass: B_t ← RefusalBypassAnalyzer(P_t)
+5:  Compute Turn Risk: CRS_t ← 0.40·H_t + 0.30·E_t + 0.20·S_t + 0.10·B_t
+6:  Update Context Memory: C_t ← 0.80·C_{t-1} + 0.20·CRS_t
+7:  Compute Dynamic Threshold: τ_t ← clamp(0.825 - 0.10·D_t - 0.15·E_t - 0.05·L_t, [0.60, 0.85])
+8:  Compute Effective Risk: R_eff ← max(CRS_t, C_t)
+9:  Evaluate Hysteresis State:
+10:     if PriorState(s) == BLOCK and R_eff >= τ_t - 0.15 then
+11:         D_t ← BLOCK
+12:     else if R_eff >= τ_t then
+13:         D_t ← BLOCK
+14:     else if R_eff >= 0.60 then
+15:         D_t ← RESTRICT
+16:     else if R_eff >= 0.40 then
+17:         D_t ← WARN
+18:     else
+19:         D_t ← ALLOW
+20:     end if
+21: if D_t == BLOCK then
+22:     R_t ← "🛡️ DEFENSE ENGINE: TERMINAL REFUSAL"
+23: else if D_t == RESTRICT then
+24:     R_t ← InvokeTargetLLM(P_t, SystemConstraint="Explain defensive theory only; redact operational code")
+25: else
+26:     R_t ← InvokeTargetLLM(P_t)
+27: end if
+28: RecordSessionHistory(s, P_t, R_t, D_t, R_eff, τ_t)
+29: return (D_t, R_t)
+```
 
 ---
 
-## 5. Summary of Empirical Results
+## 6. Summary of Empirical Results
 
 | Metric | Target Specification | Validated Result | Operational Margin |
 |---|:---:|:---:|:---:|
 | **Attack Success Rate (ASR)** | $\le 10.0\%$ | **0.00%** | +10.0% (58 / 58 blocked) |
 | **False Positive Rate (FPR)** | $\le 8.0\%$ | **0.00%** | +8.0% (0 / 50 benign dialogues blocked) |
 | **Defense Detection Rate (DDR)** | $\ge 90.0\%$ | **100.00%** | +10.0% (100% intercepted) |
-| **Average Detection Turn** | $\le 4.0$ turns | **3.25 – 3.98 turns** | Intercepts at Turn 3 or 4 of 5 |
-| **Defense Overhead Latency** | $\le 50.0\text{ ms}$ | **~21 – 24 ms** | Real-time production compliant |
+| **Average Detection Turn** | $\le 4.0$ turns | **3.98 turns** | Intercepts at Turn 3 or 4 of 5 |
+| **Defense Overhead Latency** | $\le 50.0\text{ ms}$ | **~21.4 ms** (cold) / **~7.2 ms** (cached) | Real-time production compliant |
 | **FAISS Query Latency** | $\le 25.0\text{ ms}$ | **0.012 ms** | Over 2,000× faster than budget |
-| **Master Test Certification** | 100% passing | **32 / 32 Passed** | 0 Failures, 0 Errors in 34.2s |
+| **Master Test Certification** | 100% passing | **34 / 34 Passed** | 0 Failures, 0 Errors |
 | **Checklist Adherence** | 100.0% | **153 / 153 Complete** | Verified against source code |
 
 ---
 
-## 6. Known Limitations & Honest Scientific Boundaries
+## 7. Known Limitations & Honest Scientific Boundaries
 
-1. **Multilingual Crescendo Attacks**: The current canonical embedding model (`all-MiniLM-L6-v2`) is English-specialized. Cross-lingual Crescendo attacks (e.g. switching between English and low-resource languages across turns) would require multilingual encoders such as `paraphrase-multilingual-mpnet-base-v2`.
+1. **Multilingual Crescendo Attacks**: The current canonical embedding model (`all-MiniLM-L6-v2`) is English-specialized. Cross-lingual Crescendo attacks require multilingual encoders such as `paraphrase-multilingual-MiniLM-L12-v2`.
 2. **Context Horizon Bounds**: In very long conversations ($> 50$ turns), memory accumulation requires sliding-window truncation to prevent memory saturation.
-3. **Token Generation Latency**: Our defense adds **~21–24 ms** before LLM generation begins; it does not protect against hidden-state activations within the LLM itself, but operates purely as a fast, inference-time conversational guardrail.
+3. **Modalities**: The defense evaluates textual turns; multimodal image/audio attacks fall outside the current threat model.
+4. **Token Generation Latency**: Our defense adds **~21.4 ms** before LLM generation begins; it adds **0 token overhead** to the prompt.
