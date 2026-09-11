@@ -1811,19 +1811,9 @@ body {
 .modal-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 12px 20px;
   background: rgba(0, 0, 0, 0.2);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.footer-note {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.footer-note code {
-  color: #38bdf8;
-  font-family: var(--font-mono);
 }
 
