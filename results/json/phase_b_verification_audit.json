@@ -48,7 +48,7 @@
     "attacks_detected": 58,
     "total_attacks": 58,
     "average_detection_turn": 3.98,
-    "average_turn_latency_ms": 7.75,
+    "average_turn_latency_ms": 8.24,
     "false_positive_blocks": 0,
     "total_benign_conversations": 50
   },
