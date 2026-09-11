@@ -19,29 +19,63 @@ The **Crescendo Jailbreak Detection & Adaptive Defense Framework** was built to 
 ### High-Level System Architecture
 
 ```text
-  +--------------------+      +-----------------------+      +------------------------+
-  |  User Prompt Turn  | ---> |  Semantic Drift Layer | ---> | Behavioral Rules Layer |
-  +--------------------+      |    (MiniLM-L6-v2)     |      |   (Actionability/Kw)   |
-                              +-----------------------+      +------------------------+
-                                                                         |
-                                                                         v
-  +--------------------+      +-----------------------+      +------------------------+
-  |  Mitigation Action | <--- | Contextual Memory     | <--- |   Hybrid Risk Fusion   |
-  | (Pass/Clarify/Block)      | (Decay λ=0.80 + Trend)|      | (0.70 Sem + 0.30 Rule) |
-  +--------------------+      +-----------------------+      +------------------------+
+  ┌───────────────────────────────────────────────────────────────────────────────┐
+  │                 TIER 1: INTERACTIVE WEB SECURITY RESEARCH TESTBENCH           │
+  │     • Live Telemetry Gauges      • Horizontal Risk Journey Stepper            │
+  │     • Structured Turn Cards      • Dynamic Trajectory Canvas & Beacon         │
+  │     • Decision Rationale Matrix  • 1-Click JSON/Markdown Report Export        │
+  └───────────────────────────────────────┬───────────────────────────────────────┘
+                                          │ HTTP REST API (/api/turn, /api/reset)
+                                          ▼
+  ┌───────────────────────────────────────────────────────────────────────────────┐
+  │                      TIER 2: REST API GATEWAY & SESSION BUFFER                │
+  │     • Turn History Tracking      • Session State Isolation   • Profiling      │
+  └───────────────────────────────────────┬───────────────────────────────────────┘
+                                          │
+                                          ▼
+  ┌───────────────────────────────────────────────────────────────────────────────┐
+  │                 TIER 3: PRD STATEFUL MULTI-SIGNAL DEFENSE ENGINE              │
+  │   [Harmfulness H_t]   [Escalation E_t]   [Semantic S_t]   [Refusal Bypass B_t]│
+  │          │                   │                  │                  │          │
+  │          └───────────────────┴─────────┬────────┴──────────────────┘          │
+  │                                        ▼                                      │
+  │                Composite Risk: CRS_t = 0.40H + 0.30E + 0.20S + 0.10B          │
+  │                                        │                                      │
+  │                                        ▼                                      │
+  │                Contextual Memory: C_t = 0.80·C_{t-1} + 0.20·CRS_t             │
+  │                                        │                                      │
+  │                                        ▼                                      │
+  │                Adaptive Dynamic Threshold: τ_t = τ_0 - α·D_t - β·E_t - γ·L_t  │
+  │                                        │                                      │
+  │                                        ▼                                      │
+  │                4-Tier Stateful Hysteresis Engine (Release Margin δ = 0.15)    │
+  └───────────────────────────────────────┬───────────────────────────────────────┘
+                                          │
+                  ┌───────────────┬───────┴───────┬───────────────┐
+                  ▼               ▼               ▼               ▼
+              [ ALLOW ]       [ WARN ]      [ RESTRICT ]      [ BLOCK ]
+            (CRS < 0.40)    (0.40-0.60)     (0.60-0.75)     (CRS ≥ 0.75)
+                  │               │               │               │
+  ┌───────────────┴───────────────┴───────────────┴───────────────┴───────────────┐
+  │                 TIER 4: TARGET GENERATIVE LLM & MITIGATION                    │
+  │   `meta-llama/Llama-3.2-3B-Instruct` (Executes answer or safe interception)   │
+  └───────────────────────────────────────┬───────────────────────────────────────┘
+                                          │ Real-Time Telemetry & Response Stream
+                                          ▼
+                       [ Streamed Back to Web Testbench ]
 ```
 
 ```mermaid
-flowchart LR
-    A[User Prompt] --> B[Semantic Drift Layer]
-    A --> C[Behavioral Rules Layer]
-    B --> D[Hybrid Risk Fusion Engine]
-    C --> D
-    D --> E[Contextual Memory Engine]
-    E --> F{Mitigation Decision}
-    F -->|Safe| G[Pass to LLM]
-    F -->|Medium| H[Clarification Prompt]
-    F -->|High| I[Soft Refusal]
+flowchart TD
+    Web["Tier 1: Web Security Testbench (UI / Telemetry)"] --> API["Tier 2: REST API Gateway & Session State"]
+    API --> PRD["Tier 3: PRD Stateful Defense Pipeline"]
+    PRD --> Signals["Multi-Signal Fusion (H, E, S, B)"]
+    Signals --> Mem["Contextual Memory (λ=0.80) & Adaptive Threshold (τ_t)"]
+    Mem --> State{"4-Tier Mitigation Decision"}
+    State -->|ALLOW / WARN / RESTRICT| LLM["Tier 4: Target LLM (Llama-3.2-3B)"]
+    State -->|BLOCK| BlockAction["Terminal Safety Refusal"]
+    LLM --> Web
+    BlockAction --> Web
 ```
 
 ---
