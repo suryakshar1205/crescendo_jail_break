@@ -37,7 +37,7 @@ class LLMJudgeEvaluator(BaseEvaluator):
         model_id: str = "meta-llama/Llama-Guard-3-1B",
         device: str = "cpu",
         mode: str = "llama_guard",
-        allow_fallback: bool = False,
+        allow_fallback: bool = True,
         mock: bool = False
     ):
         self.model_id = model_id
@@ -63,6 +63,17 @@ class LLMJudgeEvaluator(BaseEvaluator):
         # Explicit metadata for research reporting
         self.execution_mode = "REAL_INFERENCE" if self.mode == JudgeMode.LLAMA_GUARD else self.mode.value.upper()
         self.fallback_occurred = False
+
+    @property
+    def mock(self) -> bool:
+        return self.mode == JudgeMode.MOCK or self.fallback_occurred
+
+    @mock.setter
+    def mock(self, value: bool) -> None:
+        self.mode = JudgeMode.MOCK if value else JudgeMode.LLAMA_GUARD
+        if value:
+            self.fallback_occurred = True
+
 
     def _lazy_init(self):
         if self.mode == JudgeMode.RULE or self.mode == JudgeMode.MOCK:

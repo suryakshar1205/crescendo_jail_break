@@ -6,7 +6,13 @@ across multi-turn benign dialogues in data/benign/benign_chats.json.
 """
 import json
 import unittest
+import os
+import sys
 from pathlib import Path
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from src.crs.pipeline import CrescendoPRDPipeline
 from src.crs.types import RiskMode, DecisionAction
@@ -17,9 +23,10 @@ class TestBenignConversationsRegression(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.dataset_path = Path("data/benign/benign_chats.json")
+        cls.dataset_path = Path(PROJECT_ROOT) / "data" / "benign" / "benign_chats.json"
         with open(cls.dataset_path, "r", encoding="utf-8") as f:
             cls.benign_chats = json.load(f)
+
         cls.pipeline = CrescendoPRDPipeline(
             risk_mode=RiskMode.PRD_CRS,
             use_dynamic_mode=True
