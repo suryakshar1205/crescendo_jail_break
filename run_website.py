@@ -75,13 +75,17 @@ def get_backend_max_mtime():
 
 def start_server_process(host: str, port: int) -> subprocess.Popen:
     """Starts serve_web_demo.py as a managed child process."""
+    env = os.environ.copy()
+    env["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+    env["OMP_NUM_THREADS"] = "1"
+    env["MPLBACKEND"] = "Agg"
     cmd = [
         sys.executable,
         os.path.join(PROJECT_ROOT, "scripts", "serve_web_demo.py"),
         "--host", host,
         "--port", str(port)
     ]
-    return subprocess.Popen(cmd)
+    return subprocess.Popen(cmd, env=env)
 
 
 def main():

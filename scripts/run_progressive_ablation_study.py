@@ -28,14 +28,33 @@ from src.crs.pipeline import CrescendoPRDPipeline
 from src.crs.metrics import calculate_classification_metrics
 
 
-def run_progressive_ablation():
-    attacks_path = "data/attacks/crescendo_attacks.json"
-    benign_path = "data/benign/benign_chats.json"
+def load_full_dataset():
+    attack_paths = [
+        "data/attacks/crescendo_attacks.json",
+        "data/attacks/converted_crescendo_attacks.json",
+        "data/attacks/converted_jailbreakbench.json",
+        "data/benchmarks/mt_jailbench_seeds.json",
+        "data/attacks/mutated_crescendo_variants.json"
+    ]
+    attacks = []
+    for p in attack_paths:
+        if os.path.exists(p):
+            with open(p, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                convs = data if isinstance(data, list) else data.get("conversations", data.get("attacks", []))
+                attacks.extend(convs)
 
-    with open(attacks_path, "r", encoding="utf-8") as f:
-        attacks = json.load(f)
+    benign_path = "data/benign/benign_chats_full.json"
+    if not os.path.exists(benign_path):
+        benign_path = "data/benign/benign_chats.json"
     with open(benign_path, "r", encoding="utf-8") as f:
         benign = json.load(f)
+
+    return attacks, benign
+
+
+def run_progressive_ablation():
+    attacks, benign = load_full_dataset()
 
     configs = [
         {
@@ -89,7 +108,7 @@ def run_progressive_ablation():
         },
     ]
 
-    pipeline = CrescendoPRDPipeline(attacks_dataset_path=attacks_path)
+    pipeline = CrescendoPRDPipeline(attacks_dataset_path="data/attacks/crescendo_attacks.json")
 
     results = []
 
@@ -155,11 +174,12 @@ def run_progressive_ablation():
             latencies_ms=latencies
         )
 
-        ddr = metrics.get("ddr_percent", metrics.get("recall", 1.0) * 100.0)
-        asr = 100.0 - ddr
-        fpr = metrics.get("fpr_percent", 0.0)
-        det_turn = metrics.get("average_detection_turn", 0.0)
-        mean_lat = metrics.get("latency_stats", {}).get("mean_ms", 21.4)
+        ddr = float(metrics.get("ddr", 1.0)) * 100.0
+        asr = float(metrics.get("asr", 0.0)) * 100.0
+        fpr = float(metrics.get("fpr", 0.0)) * 100.0
+        raw_det = metrics.get("avg_detection_turn")
+        det_turn = float(raw_det) if isinstance(raw_det, (int, float)) else 0.0
+        mean_lat = float(metrics.get("latency_ms", {}).get("mean_ms", 21.4))
 
         det_str = f"{det_turn:.2f}" if det_turn > 0 else "N/A"
         print(f"{cfg_name:<24} | {asr:>6.1f}% | {fpr:>6.1f}% | {ddr:>6.1f}% | {det_str:>14} | {mean_lat:>7.1f} ms")
@@ -169,7 +189,7 @@ def run_progressive_ablation():
             "asr_percent": round(asr, 2),
             "fpr_percent": round(fpr, 2),
             "ddr_percent": round(ddr, 2),
-            "average_detection_turn": round(det_turn, 2),
+            "average_detection_turn": round(det_turn, 2) if det_turn > 0 else "N/A",
             "average_latency_ms": round(mean_lat, 2)
         })
 

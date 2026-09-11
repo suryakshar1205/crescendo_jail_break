@@ -1,0 +1,42 @@
+[
+  {
+    "defense": "No Defense",
+    "asr_percent": 100.0,
+    "fpr_percent": 0.0,
+    "ddr_percent": 0.0,
+    "average_detection_turn": "N/A",
+    "average_latency_ms": 0.0
+  },
+  {
+    "defense": "Keyword / Regex Filter",
+    "asr_percent": 48.28,
+    "fpr_percent": 0.0,
+    "ddr_percent": 51.72,
+    "average_detection_turn": 3.17,
+    "average_latency_ms": 0.82
+  },
+  {
+    "defense": "Single-Turn H-Only Detector",
+    "asr_percent": 51.72,
+    "fpr_percent": 0.0,
+    "ddr_percent": 48.28,
+    "average_detection_turn": 4.82,
+    "average_latency_ms": 18.5
+  },
+  {
+    "defense": "Single-Turn Classifier Guardrail",
+    "asr_percent": 37.93,
+    "fpr_percent": 0.0,
+    "ddr_percent": 62.07,
+    "average_detection_turn": 4.47,
+    "average_latency_ms": 19.2
+  },
+  {
+    "defense": "Stateful Full Framework (Ours)",
+    "asr_percent": 0.0,
+    "fpr_percent": 0.0,
+    "ddr_percent": 100.0,
+    "average_detection_turn": 3.98,
+    "average_latency_ms": 7.22
+  }
+]

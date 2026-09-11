@@ -332,9 +332,9 @@
 
     await stepNextScenarioTurn();
 
-    // Check if the last turn was BLOCKED; if so, highlight interception and halt autoplay
+    // Check if the last turn was BLOCKED; if so, highlight terminal interception and halt autoplay
     const lastTurn = state.history[state.history.length - 1];
-    if (lastTurn && (lastTurn.decision === 'BLOCK' || lastTurn.decision === 'RESTRICT')) {
+    if (lastTurn && lastTurn.decision === 'BLOCK') {
       stopAutoPlay();
       checkScenarioCompletion();
       return;
@@ -417,11 +417,11 @@
     // Clear user input
     el.promptInput.value = '';
 
-    // Check if scenario has completed all turns or reached interception
+    // Check if scenario has completed all turns or reached terminal BLOCK
     if (state.selectedScenario) {
       const isLastTurn = state.scenarioTurnIndex >= state.selectedScenario.turns.length;
-      const isIntercepted = turnData.decision === 'BLOCK' || turnData.decision === 'RESTRICT';
-      if (isLastTurn || isIntercepted) {
+      const isTerminalBlock = turnData.decision === 'BLOCK';
+      if (isLastTurn || isTerminalBlock) {
         checkScenarioCompletion();
       }
     }
@@ -788,7 +788,7 @@
 
     const totalTurns = state.selectedScenario.turns.length;
     const isCompletedAll = state.scenarioTurnIndex >= totalTurns;
-    const hadInterception = state.history.some(t => t.decision === 'BLOCK' || t.decision === 'RESTRICT');
+    const hadInterception = state.history.some(t => t.decision === 'BLOCK');
 
     if (isCompletedAll || hadInterception) {
       const summaryCard = document.createElement('div');

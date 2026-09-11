@@ -1,58 +1,58 @@
 [
   {
     "configuration": "H only",
-    "asr_percent": 30.0,
+    "asr_percent": 27.59,
     "fpr_percent": 0.0,
-    "ddr_percent": 70.0,
-    "average_detection_turn": 0.0,
-    "average_latency_ms": 21.4
+    "ddr_percent": 72.41,
+    "average_detection_turn": 4.48,
+    "average_latency_ms": 7.2
   },
   {
     "configuration": "H + E",
-    "asr_percent": 10.0,
+    "asr_percent": 8.62,
     "fpr_percent": 0.0,
-    "ddr_percent": 90.0,
-    "average_detection_turn": 0.0,
-    "average_latency_ms": 21.4
+    "ddr_percent": 91.38,
+    "average_detection_turn": 4.3,
+    "average_latency_ms": 0.64
   },
   {
     "configuration": "H + E + S",
     "asr_percent": 0.0,
     "fpr_percent": 0.0,
     "ddr_percent": 100.0,
-    "average_detection_turn": 0.0,
-    "average_latency_ms": 21.4
+    "average_detection_turn": 3.95,
+    "average_latency_ms": 0.63
   },
   {
     "configuration": "H + E + S + B",
     "asr_percent": 0.0,
     "fpr_percent": 0.0,
     "ddr_percent": 100.0,
-    "average_detection_turn": 0.0,
-    "average_latency_ms": 21.4
+    "average_detection_turn": 3.98,
+    "average_latency_ms": 0.61
   },
   {
     "configuration": "+ Memory",
     "asr_percent": 0.0,
     "fpr_percent": 0.0,
     "ddr_percent": 100.0,
-    "average_detection_turn": 0.0,
-    "average_latency_ms": 21.4
+    "average_detection_turn": 3.98,
+    "average_latency_ms": 0.61
   },
   {
     "configuration": "+ Adaptive Threshold",
     "asr_percent": 0.0,
     "fpr_percent": 0.0,
     "ddr_percent": 100.0,
-    "average_detection_turn": 0.0,
-    "average_latency_ms": 21.4
+    "average_detection_turn": 3.98,
+    "average_latency_ms": 0.79
   },
   {
     "configuration": "Full Framework",
     "asr_percent": 0.0,
     "fpr_percent": 0.0,
     "ddr_percent": 100.0,
-    "average_detection_turn": 0.0,
-    "average_latency_ms": 21.4
+    "average_detection_turn": 3.98,
+    "average_latency_ms": 0.73
   }
 ]

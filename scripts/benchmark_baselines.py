@@ -26,14 +26,33 @@ from src.crs.pipeline import CrescendoPRDPipeline
 from src.crs.harmfulness import HarmfulnessAnalyzer
 
 
-def run_baseline_benchmark():
-    attacks_path = "data/attacks/crescendo_attacks.json"
-    benign_path = "data/benign/benign_chats.json"
+def load_full_dataset():
+    attack_paths = [
+        "data/attacks/crescendo_attacks.json",
+        "data/attacks/converted_crescendo_attacks.json",
+        "data/attacks/converted_jailbreakbench.json",
+        "data/benchmarks/mt_jailbench_seeds.json",
+        "data/attacks/mutated_crescendo_variants.json"
+    ]
+    attacks = []
+    for p in attack_paths:
+        if os.path.exists(p):
+            with open(p, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                convs = data if isinstance(data, list) else data.get("conversations", data.get("attacks", []))
+                attacks.extend(convs)
 
-    with open(attacks_path, "r", encoding="utf-8") as f:
-        attacks = json.load(f)
+    benign_path = "data/benign/benign_chats_full.json"
+    if not os.path.exists(benign_path):
+        benign_path = "data/benign/benign_chats.json"
     with open(benign_path, "r", encoding="utf-8") as f:
         benign = json.load(f)
+
+    return attacks, benign
+
+
+def run_baseline_benchmark():
+    attacks, benign = load_full_dataset()
 
     # 1. No Defense
     no_defense = {
@@ -147,7 +166,7 @@ def run_baseline_benchmark():
     }
 
     # 5. Stateful Full Framework (Ours)
-    pipeline = CrescendoPRDPipeline(attacks_dataset_path=attacks_path)
+    pipeline = CrescendoPRDPipeline(attacks_dataset_path="data/attacks/crescendo_attacks.json")
     stateful_det_turns = []
     stateful_atk_detected = 0
     stateful_latencies = []
