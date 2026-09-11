@@ -123,7 +123,7 @@ class CrescendoPRDPipeline:
             history_window=self.history_window
         )
         self.dynamic_calibrator = DynamicThresholdCalibrator(
-            base_threshold=dyn_cfg.get("base_threshold", self.restrict_threshold),
+            base_threshold=dyn_cfg.get("base_threshold", 0.825),
             min_threshold=dyn_cfg.get("min_threshold", 0.60),
             max_threshold=dyn_cfg.get("max_threshold", 0.85),
             alpha=dyn_cfg.get("alpha", 0.10),

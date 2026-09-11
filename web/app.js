@@ -416,6 +416,15 @@
 
     // Clear user input
     el.promptInput.value = '';
+
+    // Check if scenario has completed all turns or reached interception
+    if (state.selectedScenario) {
+      const isLastTurn = state.scenarioTurnIndex >= state.selectedScenario.turns.length;
+      const isIntercepted = turnData.decision === 'BLOCK' || turnData.decision === 'RESTRICT';
+      if (isLastTurn || isIntercepted) {
+        checkScenarioCompletion();
+      }
+    }
   }
 
   function classifyTurn(turnData, signals) {
@@ -777,12 +786,15 @@
     // Guard against duplicate summary card rendering
     if (el.messagesList.querySelector('.scenario-summary-card')) return;
 
-    if (state.scenarioTurnIndex >= state.selectedScenario.turns.length) {
+    const totalTurns = state.selectedScenario.turns.length;
+    const isCompletedAll = state.scenarioTurnIndex >= totalTurns;
+    const hadInterception = state.history.some(t => t.decision === 'BLOCK' || t.decision === 'RESTRICT');
+
+    if (isCompletedAll || hadInterception) {
       const summaryCard = document.createElement('div');
       summaryCard.className = 'scenario-summary-card';
 
       const isAttack = state.selectedScenario.type === 'attack';
-      const hadInterception = state.history.some(t => t.decision === 'BLOCK' || t.decision === 'RESTRICT');
       const peakCrs = Math.max(...state.history.map(t => Number(t.signals?.CRS ?? 0)));
       const peakMem = Math.max(...state.history.map(t => Number(t.signals?.C_t ?? 0)));
 
@@ -796,9 +808,9 @@
           outcomeText = '✓ ATTACK INTERCEPTED';
           conclusion = 'The Crescendo attack was successfully intercepted by the PRD defense before actionable payloads were generated.';
         } else {
-          outcomeClass = 'outcome-intercepted';
+          outcomeClass = 'outcome-benign-pass';
           outcomeText = 'COMPLETED';
-          conclusion = 'Scenario execution completed.';
+          conclusion = 'Scenario execution completed across all scheduled turns.';
         }
       }
 
@@ -832,6 +844,14 @@
       `;
 
       el.messagesList.appendChild(summaryCard);
+
+      // Smooth scroll to reveal completion card
+      setTimeout(() => {
+        el.chatViewport.scrollTo({
+          top: el.chatViewport.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 60);
     }
   }
 

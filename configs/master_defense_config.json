@@ -16,7 +16,7 @@
     "safe_cutoff": 0.35
   },
   "dynamic_threshold": {
-    "base_threshold": 0.80,
+    "base_threshold": 0.825,
     "min_threshold": 0.60,
     "max_threshold": 0.85,
     "alpha": 0.10,

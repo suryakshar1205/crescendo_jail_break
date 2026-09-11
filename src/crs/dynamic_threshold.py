@@ -5,7 +5,7 @@ Implements the formal dynamic threshold equation:
     T_t = T_0 - α * D_t - β * E_t - γ * L_t
 
 Where:
-    - T_0: Base threshold (default: 0.80)
+    - T_0: Base threshold (default: 0.825)
     - D_t: Cumulative semantic drift relative to turn 1
     - E_t: Intent escalation score in [0, 1]
     - L_t: Conversation-length factor, defined as min(1.0, turn_number / 10.0)
@@ -31,7 +31,7 @@ class DynamicThresholdCalibrator:
 
     def __init__(
         self,
-        base_threshold: float = 0.80,
+        base_threshold: float = 0.825,
         min_threshold: float = 0.60,
         max_threshold: float = 0.85,
         alpha: float = 0.10,
