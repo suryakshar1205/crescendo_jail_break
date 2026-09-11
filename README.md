@@ -42,7 +42,12 @@ State-of-the-art LLM safety guardrails (RLHF, system prompts, static keyword cla
 2. Gradually nudging context across successive turns using hypotheticals, roleplay framing, and semantic drift.
 3. Leveraging the model's own dialogue history to coerce it into outputting prohibited, dangerous, or actionable exploit instructions.
 
-The **Crescendo PRD Defense Framework** introduces a lightweight, stateful defense pipeline positioned directly in the inference loop. Operating in **~21 ms per turn** without requiring model fine-tuning, expensive secondary LLM calls, or internal activation probes, the defense fuses:
+The **Crescendo PRD Defense Framework** is an integrated **full-stack multi-turn security system** comprising:
+1. **Interactive Web Security Research Testbench (`web/` + `run_website.py`)**: A real-time research testing console, dynamic telemetry dashboard, and red-team audit platform featuring Security Turn Cards, Horizontal Risk Stepper, Explainability Rationale, and Live Trajectory Canvases.
+2. **Stateful Inference Defense Pipeline (`src/crs/`)**: Sub-25ms multi-signal risk fusion ($CRS_t$), FAISS vector retrieval, contextual memory accumulation ($C_t$), dynamic adaptive thresholding ($T_t$), and 4-tier hysteresis mitigation engine.
+3. **Automated Evaluation & Live Testing Suite (`data/`, `tests/`, `DEMO_TESTING_EXAMPLES.md`)**: 58 benchmark attacks across 5 corpora, 50 benign controls, and 7 turnkey live demo scenarios certified by 32 passing master tests.
+
+Operating in **~21 ms per turn** without requiring model fine-tuning, expensive secondary LLM calls, or internal activation probes, the defense fuses:
 - **FAISS-accelerated Vector Similarity** against 292 curated attack signatures ($0.012\text{ ms}$ query latency).
 - **Composite Risk Scoring ($CRS_t$)** synthesizing Harmfulness ($H_t$), Intent Escalation ($E_t$), Semantic Drift ($S_t$), and Refusal Bypass Resistance ($B_t$).
 - **Contextual Memory Accumulator ($C_t$)** with exponential decay ($\lambda = 0.80$) that remembers historical risk pressure.
@@ -94,14 +99,22 @@ python run_website.py --no-browser       # Headless server mode
 python run_website.py --no-watch         # Disable backend file watcher
 ```
 
-### Dashboard Capabilities
-- **Real-Time 4-Signal Telemetry**: Glowing, dynamic cyber-dark gauges for Harmfulness ($H_t$), Escalation Rate ($E_t$), Semantic Drift ($S_t$), and Refusal Bypass Resistance ($B_t$).
-- **Live Risk Trajectory Canvas**: Plots the exact turn-by-turn evolution of $CRS_t$, historical memory $C_t$, and dynamic threshold $T_t$, highlighting interception beacons before unsafe tokens are generated.
-- **15 Curated Benchmark Scenarios**: One-click dropdown loading 10 Crescendo attacks (social engineering, lock picking, malware, privilege escalation, Molotov synthesis) and 5 benign dialogues (cryptography, DevOps, biology, creative writing).
-- **Explainability Transparency Panel**: Displays exact mathematical weights, dominant risk contributors, and behavioral rationale behind every defense action.
-- **Zero-Dependency Hot Reloading**:
-  - *Frontend*: Instant browser auto-refresh upon saving changes to `web/index.html`, `style.css`, or `app.js` via `/api/livereload`.
-  - *Backend*: Auto-restart upon modifying files in `src/crs/` or `scripts/`.
+### Security Research Testbench Capabilities (Top 8 Upgrades)
+
+The web dashboard is engineered as an interactive **security research testbench** providing granular, explainable multi-turn analysis:
+
+1. **Security-Analysis Turn Cards**: Replaces generic chat bubbles with structured security cards displaying prompt text, model response, turn classification tags (`BENIGN`, `TECHNICAL`, `OPERATIONAL`, `ACTIONABLE`), $CRS_t$ score, cumulative memory $C_t$, delta shifts ($\uparrow$), and signal observation chips (e.g. `Harm: 0.88`, `Bypass Detected`).
+2. **Horizontal "Risk Journey" Stepper**: Turn-by-turn interactive timeline (`T1 ●──→ T2 ●──→ ...`) tracking cumulative risk evolution, highlighting state changes, and providing instant turn scrubbing.
+3. **Transparent Decision Rationale Box**: Bulleted justification matrix explaining why the defense triggered or remained passive (e.g., threshold breaches, intent acceleration, semantic drift from anchor, and memory decay accumulation).
+4. **4-Tier Stateful State Machine Visualizer**: Dynamically illuminated path `[ALLOW] ──→ [WARN] ──→ [RESTRICT] ──→ [BLOCK]` displaying current status, active mitigation, and hysteresis release margins ($\delta = 0.15$).
+5. **Real-Time Gauge Deltas & Dynamic Meanings**: Displays rate-of-change indicators ($\Delta H, \Delta E, \Delta S, \Delta B$) alongside contextual interpretations explaining what the scores signify in real-world security terms.
+6. **Trajectory Canvas Intervention Beacon**: Pinpoints the exact turn of intervention with a vertical dashed beacon and status badge directly overlaid on the $CRS_t$, $C_t$, and $\tau_t$ mathematical curves.
+7. **End-of-Scenario Completion Card**: Comprehensive post-mortem audit card displaying peak risk, turns survived before interception, final mitigation tier, and formal security conclusion.
+8. **One-Click Red-Team Audit Export**: Generates and downloads a complete JSON / Markdown session audit log for offline evaluation, compliance tracking, and reproducibility.
+
+### Standards Compliance & Engineering Excellence
+- **W3C Standards Compliant**: Pure vanilla HTML5, modern CSS custom properties with standard `background-clip: text;` and transparent text-fill fallbacks for 100% cross-browser fidelity across Chromium, Safari, Firefox, and Edge.
+- **Zero-Dependency Serving**: Powered by Python's built-in `ThreadingHTTPServer` with automatic port fallback and hot-reloading watchers (`/api/livereload`).
 
 > 📋 **Live Testing Guide**: See [DEMO_TESTING_EXAMPLES.md](DEMO_TESTING_EXAMPLES.md) for 7 complete, copy-paste-ready test scenarios (unseen malware injection, SCADA sabotage, wire fraud, and 0% FPR controls) designed for live demonstration.
 
@@ -142,63 +155,59 @@ The Crescendo PRD defense detects:
 
 ---
 
-## Canonical PRD Defense Architecture
+## Canonical Full-Stack System Architecture
+
+The complete framework is deployed as a 4-tier integrated system that unifies human research interaction, REST routing, stateful risk inference, and target LLM mitigation:
 
 ```text
-                                 Incoming User Prompt
-                                          │
-                                          ▼
-                             ┌─────────────────────────┐
-                             │  Turn History Buffer    │
-                             │ (Session State Tracker) │
-                             └────────────┬────────────┘
-                                          │
-         ┌───────────────────┬────────────┴────────────┬───────────────────┐
-         ▼                   ▼                         ▼                   ▼
- ┌───────────────┐   ┌───────────────┐         ┌───────────────┐   ┌───────────────┐
- │ Harmfulness   │   │  Intent       │         │ Semantic      │   │ Refusal       │
- │ Analyzer (H)  │   │  Escalation   │         │ Drift (S)     │   │ Bypass (B)    │
- │ FAISS Similarity  │  Slope (E)    │         │ Anchor Dist   │   │ 6 Linguistic  │
- │ + Lexical Rules│   │  d(Risk)/dt   │         │ Cosine Metric │   │ Evasion Modes │
- └───────┬───────┘   └───────┬───────┘         └───────┬───────┘   └───────┬───────┘
-         │ (40%)             │ (30%)                   │ (20%)             │ (10%)
-         └───────────────────┼─────────────────────────┴───────────────────┘
-                             ▼
-                 ┌───────────────────────┐
-                 │ Composite Risk Engine │
-                 │ CRS_t = 0.40H + 0.30E │
-                 │       + 0.20S + 0.10B │
-                 └───────────┬───────────┘
-                             │
-                             ▼
-                 ┌───────────────────────┐
-                 │  Conversation Memory  │
-                 │   C_t = λ*C_{t-1}     │
-                 │     + (1-λ)*CRS_t     │ (λ = 0.80)
-                 └───────────┬───────────┘
-                             │
-                             ▼
-                 ┌───────────────────────┐
-                 │   Dynamic Threshold   │
-                 │  T_t = T_0 - α*D_t    │ (T_0 = 0.825, α = 0.10,
-                 │        - β*E_t - γ*L_t│  β = 0.15, γ = 0.05)
-                 └───────────┬───────────┘
-                             │
-                             ▼
-                 ┌───────────────────────┐
-                 │ 4-Tier Decision Engine│
-                 │  Stateful Hysteresis  │ (Release Margin δ = 0.15)
-                 └───────────┬───────────┘
-                             │
-       ┌─────────────┬───────┴───────┬─────────────┐
-       ▼             ▼               ▼             ▼
-   [ ALLOW ]     [ WARN ]      [ RESTRICT ]    [ BLOCK ]
-  (CRS < 0.40)  (0.40-0.60)    (0.60-0.75)    (CRS ≥ 0.75)
-       │             │               │             │
-       ▼             ▼               ▼             ▼
-   Standard      Advisory        Redacted       Terminal
-   Response       Warning       Educational    Refusal &
-                               Safe Context    Termination
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │              TIER 1: INTERACTIVE WEB SECURITY RESEARCH TESTBENCH            │
+  │   • Live Telemetry Gauges     • Horizontal Risk Journey Stepper             │
+  │   • Structured Turn Cards     • Dynamic Trajectory Canvas & Beacon          │
+  │   • Explainable Decision Rationale Box   • 4-Tier State Machine Visualizer  │
+  │   • End-of-Scenario Audit Card           • 1-Click JSON/Markdown Report     │
+  └──────────────────────────────────────┬──────────────────────────────────────┘
+                                         │ HTTP REST API (/api/turn, /api/reset)
+                                         ▼
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │                     TIER 2: REST API GATEWAY & SESSION STATE                │
+  │   • Turn History Buffer      • Session State Isolation  • Latency Profiler  │
+  └──────────────────────────────────────┬──────────────────────────────────────┘
+                                         │
+                                         ▼
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │                 TIER 3: PRD STATEFUL MULTI-SIGNAL DEFENSE ENGINE            │
+  │  ┌───────────────┐   ┌───────────────┐   ┌───────────────┐   ┌────────────┐ │
+  │  │ Harmfulness H │   │ Escalation E  │   │ Semantic S    │   │ Bypass B   │ │
+  │  │ FAISS 0.012ms │   │ d(Risk)/dt    │   │ Anchor Dist   │   │ Linguistic │ │
+  │  └───────┬───────┘   └───────┬───────┘   └───────┬───────┘   └──────┬─────┘ │
+  │          │ (40%)             │ (30%)             │ (20%)            │ (10%) │
+  │          └───────────────────┼───────────────────┴──────────────────┘       │
+  │                              ▼                                              │
+  │             Composite Risk: CRS_t = 0.40H + 0.30E + 0.20S + 0.10B           │
+  │                              │                                              │
+  │                              ▼                                              │
+  │             Contextual Memory: C_t = 0.80*C_{t-1} + 0.20*CRS_t              │
+  │                              │                                              │
+  │                              ▼                                              │
+  │             Dynamic Threshold: T_t = T_0 - α*D_t - β*E_t - γ*L_t            │
+  │                              │                                              │
+  │                              ▼                                              │
+  │             4-Tier Stateful Hysteresis Engine (Release Margin δ = 0.15)     │
+  └──────────────────────────────┬──────────────────────────────────────────────┘
+                                 │
+         ┌───────────────┬───────┴───────┬───────────────┐
+         ▼               ▼               ▼               ▼
+     [ ALLOW ]       [ WARN ]      [ RESTRICT ]      [ BLOCK ]
+   (CRS < 0.40)    (0.40-0.60)     (0.60-0.75)     (CRS ≥ 0.75)
+         │               │               │               │
+  ┌──────┴───────────────┴───────────────┴───────────────┴──────────────────────┐
+  │                   TIER 4: TARGET LLM & INTERVENTION RESPONDER               │
+  │   • Generates standard answer, advisory warning, redacted context, or block │
+  └──────────────────────────────────────┬──────────────────────────────────────┘
+                                         │ Telemetry & Intervention Response Stream
+                                         ▼
+               [ Instant Visual Update on Web Security Testbench ]
 ```
 
 ---

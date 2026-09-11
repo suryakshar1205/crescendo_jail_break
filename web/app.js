@@ -23,6 +23,10 @@
   const el = {
     systemStatusPill: document.getElementById('systemStatusPill'),
     systemStatusText: document.getElementById('systemStatusText'),
+    systemGuideBtn: document.getElementById('systemGuideBtn'),
+    systemGuideModal: document.getElementById('systemGuideModal'),
+    closeGuideModalBtn: document.getElementById('closeGuideModalBtn'),
+    closeGuideModalBtn2: document.getElementById('closeGuideModalBtn2'),
     exportReportBtn: document.getElementById('exportReportBtn'),
     resetSessionBtn: document.getElementById('resetSessionBtn'),
     scenarioSelect: document.getElementById('scenarioSelect'),
@@ -113,6 +117,30 @@
   }
 
   function bindEvents() {
+    // System Guide Modal
+    if (el.systemGuideBtn && el.systemGuideModal) {
+      const openModal = () => {
+        el.systemGuideModal.classList.add('active');
+        el.systemGuideModal.setAttribute('aria-hidden', 'false');
+      };
+      const closeModal = () => {
+        el.systemGuideModal.classList.remove('active');
+        el.systemGuideModal.setAttribute('aria-hidden', 'true');
+      };
+
+      el.systemGuideBtn.addEventListener('click', openModal);
+      if (el.closeGuideModalBtn) el.closeGuideModalBtn.addEventListener('click', closeModal);
+      if (el.closeGuideModalBtn2) el.closeGuideModalBtn2.addEventListener('click', closeModal);
+      el.systemGuideModal.addEventListener('click', (e) => {
+        if (e.target === el.systemGuideModal) closeModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && el.systemGuideModal.classList.contains('active')) {
+          closeModal();
+        }
+      });
+    }
+
     // Export Report
     if (el.exportReportBtn) {
       el.exportReportBtn.addEventListener('click', exportSessionReport);

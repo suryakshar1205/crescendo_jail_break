@@ -34,6 +34,9 @@
     - [12.3 Dynamic Threshold vs. Fixed Threshold Comparison](#123-dynamic-threshold-vs-fixed-threshold-comparison)
     - [12.4 LLM-as-a-Judge Evaluation Transparency](#124-llm-as-a-judge-evaluation-transparency)
     - [12.5 Viva & Technical Interview Defense Guide](#125-viva--technical-interview-defense-guide)
+13. [Interactive Security Research Testbench (Top 8 Upgrades)](#13-interactive-security-research-testbench-top-8-upgrades)
+14. [Standardized Demonstration Scenarios Suite](#14-standardized-demonstration-scenarios-suite)
+15. [Frontend Standards Compliance & Production Hardening](#15-frontend-standards-compliance--production-hardening)
 
 ---
 
@@ -83,54 +86,64 @@ To prevent architectural ambiguity during research presentation and viva defense
 2. **Defense Embedding Model**: `sentence-transformers/all-MiniLM-L6-v2` (384-dimensional dense vectors). Runs in real-time on CPU (~12ms) to compute semantic drift ($D_{\text{anchor}}, D_{\text{local}}$) and FAISS vector projections.
 3. **LLM-as-a-Judge Safety Evaluator**: `meta-llama/Llama-Guard-3-1B`. Used for post-hoc validation and inter-annotator agreement benchmarking.
 
-```
-       User Prompt (Turn t)
-               │
-   ┌───────────┴───────────────────────────────────────┐
-   │                                                   │
-   ▼                                                   ▼
-┌─────────────────────────────────┐   ┌─────────────────────────────────┐
-│ 1. Harmfulness Analyzer (H_t)   │   │ 2. Intent Escalation (E_t)      │
-│  - Keyword Density              │   │  - Actionability Delta          │
-│  - Procedural Actionability     │   │  - Conceptual-to-Operational    │
-│  - High-Severity Regex Matches  │   │  - Trend Persistence Memory     │
-└────────────────┬────────────────┘   └────────────────┬────────────────┘
-                 │                                     │
-   ┌─────────────┴─────────────────────────────────────┘
-   │
-   ▼
-┌─────────────────────────────────┐   ┌─────────────────────────────────┐
-│ 3. Semantic Drift Layer (S_t)   │   │ 4. Refusal Bypass Layer (B_t)   │
-│  - Anchor Drift D_anchor        │   │  - Jailbreak Framing Overrides  │
-│  - Local Drift D_local          │   │  - Post-Refusal Bypass Probing  │
-│  - FAISS IndexFlatIP (292 vecs) │   │  - Policy Cancellation Vectors  │
-└────────────────┬────────────────┘   └────────────────┬────────────────┘
-                 │                                     │
-                 └──────────────────┬──────────────────┘
-                                    │
-                                    ▼
-       ┌─────────────────────────────────────────────────────────┐
-       │ Canonical Risk Fusion Engine                            │
-       │   CRS_t = 0.40*H_t + 0.30*E_t + 0.20*S_t + 0.10*B_t     │
-       └────────────────────────────┬────────────────────────────┘
-                                    │
-                                    ▼
-       ┌─────────────────────────────────────────────────────────┐
-       │ Stateful Contextual Memory Accumulator                  │
-       │   C_t = λ * C_{t-1} + (1 - λ) * CRS_t   (λ = 0.80)      │
-       └────────────────────────────┬────────────────────────────┘
-                                    │
-                                    ▼
-       ┌─────────────────────────────────────────────────────────┐
-       │ Dynamic Threshold Calibrator                            │
-       │   τ_t = τ_base - α*D_anchor - β*Δ_action - γ*Domain_sens │
-       └────────────────────────────┬────────────────────────────┘
-                                    │
-                                    ▼
-       ┌─────────────────────────────────────────────────────────┐
-       │ Adaptive Decision Engine with Stateful Hysteresis       │
-       │   ALLOW (<0.40) │ WARN │ RESTRICT │ BLOCK (≥0.75)       │
-       └─────────────────────────────────────────────────────────┘
+```text
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │              TIER 1: INTERACTIVE WEB SECURITY RESEARCH TESTBENCH            │
+  │   • Live Telemetry Gauges     • Horizontal Risk Journey Stepper             │
+  │   • Structured Turn Cards     • Dynamic Trajectory Canvas & Beacon          │
+  │   • Decision Rationale Box    • 4-Tier State Machine Visualizer             │
+  │   • End-of-Scenario Audit     • 1-Click JSON/Markdown Report Export         │
+  └──────────────────────────────────────┬──────────────────────────────────────┘
+                                         │ HTTP REST API (/api/turn, /api/reset)
+                                         ▼
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │                     TIER 2: REST API GATEWAY & SESSION STATE                │
+  │   • Turn History Buffer      • Session State Isolation  • Latency Profiler  │
+  └──────────────────────────────────────┬──────────────────────────────────────┘
+                                         │
+                                         ▼
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │                 TIER 3: PRD STATEFUL MULTI-SIGNAL DEFENSE ENGINE            │
+  │  ┌───────────────────────────────┐   ┌───────────────────────────────┐      │
+  │  │ 1. Harmfulness Analyzer (H_t) │   │ 2. Intent Escalation (E_t)    │      │
+  │  │  - Keyword Density            │   │  - Actionability Delta        │      │
+  │  │  - Procedural Actionability   │   │  - Conceptual-to-Operational  │      │
+  │  │  - High-Severity Regex Matches│   │  - Trend Persistence Memory   │      │
+  │  └───────────────┬───────────────┘   └───────────────┬───────────────┘      │
+  │                  │ (40%)                             │ (30%)                │
+  │  ┌───────────────┴───────────────┐   ┌───────────────┴───────────────┐      │
+  │  │ 3. Semantic Drift Layer (S_t) │   │ 4. Refusal Bypass Layer (B_t) │      │
+  │  │  - Anchor Drift D_anchor      │   │  - Jailbreak Framing Overrides│      │
+  │  │  - Local Drift D_local        │   │  - Post-Refusal Bypass Probing│      │
+  │  │  - FAISS IndexFlatIP (292 vec)│   │  - Policy Cancellation Vectors│      │
+  │  └───────────────┬───────────────┘   └───────────────┬───────────────┘      │
+  │                  │ (20%)                             │ (10%)                │
+  │                  └───────────────────┬───────────────┘                      │
+  │                                      ▼                                      │
+  │         Canonical Risk Fusion: CRS_t = 0.40*H_t + 0.30*E_t + 0.20*S_t + 0.10*B_t    │
+  │                                      │                                      │
+  │                                      ▼                                      │
+  │         Contextual Memory: C_t = λ * C_{t-1} + (1 - λ) * CRS_t   (λ = 0.80) │
+  │                                      │                                      │
+  │                                      ▼                                      │
+  │         Dynamic Threshold: τ_t = τ_base - α*D_anchor - β*Δ_action - γ*Domain│
+  │                                      │                                      │
+  │                                      ▼                                      │
+  │         Adaptive Decision Engine with Stateful Hysteresis (Margin δ = 0.15) │
+  └──────────────────────────────────────┬──────────────────────────────────────┘
+                                         │
+                 ┌───────────────┬───────┴───────┬───────────────┐
+                 ▼               ▼               ▼               ▼
+             [ ALLOW ]       [ WARN ]      [ RESTRICT ]      [ BLOCK ]
+           (CRS < 0.40)    (0.40-0.60)     (0.60-0.75)     (CRS ≥ 0.75)
+                 │               │               │               │
+  ┌──────────────┴───────────────┴───────────────┴───────────────┴──────────────┐
+  │                 TIER 4: TARGET GENERATIVE LLM & MITIGATION                  │
+  │   `meta-llama/Llama-3.2-3B-Instruct` (Safe execution or defensive block)   │
+  └──────────────────────────────────────┬──────────────────────────────────────┘
+                                         │ Telemetry & Response Stream
+                                         ▼
+                       [ Streamed Back to Web Testbench ]
 ```
 
 ### 3.1 Four-Component Conversation Risk Score ($CRS_t$)
@@ -422,6 +435,41 @@ Evaluated on attack trajectories to measure the exact effect of dynamic calibrat
 
 ### 12.5 Viva & Technical Interview Defense Guide
 A dedicated oral defense cheatsheet covering problem definition, threat modeling, mathematical derivations, ablation rationales, and scientific boundaries has been created in [`reports/viva_defense_guide.md`](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/viva_defense_guide.md).
+
+---
+
+## 13. Interactive Security Research Testbench (Top 8 Upgrades)
+
+The framework features an interactive **Security Research Testbench** accessible via `python run_website.py` at `http://localhost:8080/`. Engineered for explainability, deep red-team inspection, and multi-turn trajectory validation, the interface includes 8 essential security enhancements:
+
+1. **Security Turn Cards**: Replaced generic chat bubbles with structured security-audit cards displaying prompt text, LLM output, classification tags (`BENIGN`, `TECHNICAL`, `OPERATIONAL`, `ACTIONABLE`), $CRS_t$ composite score, memory decay $C_t$, and turn deltas.
+2. **Horizontal "Risk Journey" Stepper**: Turn-by-turn interactive timeline (`T1 ●──→ T2 ●──→ ...`) tracking cumulative risk evolution, highlighting state changes, and providing instant turn scrubbing.
+3. **Transparent Decision Rationale Box**: Bulleted justification matrix explaining why the defense triggered or remained passive (e.g., threshold breaches, intent acceleration, semantic drift from anchor, and memory decay accumulation).
+4. **4-Tier Stateful State Machine Visualizer**: Dynamically illuminated path `[ALLOW] ──→ [WARN] ──→ [RESTRICT] ──→ [BLOCK]` displaying current status, active mitigation, and hysteresis release margins ($\delta = 0.15$).
+5. **Real-Time Gauge Deltas & Dynamic Meanings**: Displays rate-of-change indicators ($\Delta H, \Delta E, \Delta S, \Delta B$) alongside contextual interpretations explaining what the scores signify in real-world security terms.
+6. **Trajectory Canvas Intervention Beacon**: Pinpoints the exact turn of intervention with a vertical dashed beacon and status badge directly overlaid on the $CRS_t$, $C_t$, and $\tau_t$ mathematical curves.
+7. **End-of-Scenario Completion Card**: Comprehensive post-mortem audit card displaying peak risk, turns survived before interception, final mitigation tier, and formal security conclusion.
+8. **One-Click Red-Team Audit Export**: Generates and downloads a complete JSON / Markdown session audit log for offline evaluation, compliance tracking, and reproducibility.
+
+---
+
+## 14. Standardized Demonstration Scenarios Suite
+
+Documented in [`DEMO_TESTING_EXAMPLES.md`](file:///c:/Users/surya/Desktop/crescendo_jail_break/DEMO_TESTING_EXAMPLES.md), the repository provides 7 turnkey, copy-paste evaluation dialogues:
+* **Attack 1**: In-Memory Reflective DLL Injection / Shellcode Execution (5 turns: `ALLOW` $\to$ `WARN` $\to$ `RESTRICT` $\to$ `BLOCK`).
+* **Attack 2**: Executive Impersonation & Wire Fraud Transfer (4 turns).
+* **Attack 3**: CI/CD Supply Chain Poisoning & Package Substitution (4 turns).
+* **Attack 4**: Industrial SCADA/ICS Pipeline Manipulation (4 turns).
+* **Benign 5**: Linux Sysadmin Log Parsing & Performance Tuning (4 turns: `ALLOW` throughout, 0% FPR).
+* **Benign 6**: Cryptographic Theory, Factoring & RSA Mathematics (4 turns: `ALLOW` throughout, 0% FPR).
+* **Benign 7**: SOC Blue Team Incident Response & Reverse Engineering (4 turns: `ALLOW` throughout, 0% FPR).
+
+---
+
+## 15. Frontend Standards Compliance & Production Hardening
+
+* **W3C Standards Compliance**: Standard `background-clip: text;` and `color: transparent;` defined in [web/style.css](file:///c:/Users/surya/Desktop/crescendo_jail_break/web/style.css#L131-L141) for seamless cross-browser rendering across Chromium, Safari, Firefox, and Edge.
+* **Server Module Resolution**: Hardened module loading and non-blocking static file handling in [scripts/serve_web_demo.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/scripts/serve_web_demo.py).
 
 ---
 

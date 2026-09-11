@@ -381,9 +381,39 @@ graph TD
 
 ---
 
-## 8. Summary & Key Takeaways
+## 8. Interactive Security Research Testbench (Top 8 Upgrades)
+
+To empower security analysts, red-teamers, and alignment researchers, the framework provides an explainable **Security Research Testbench** via `python run_website.py` at `http://localhost:8080/`:
+
+1. **Security Turn Cards**: Restructures chat history into security analysis cards with turn classification badges (`BENIGN`, `TECHNICAL`, `OPERATIONAL`, `ACTIONABLE`), composite risk score $CRS_t$, exponential memory $C_t$, delta risk indicators ($\uparrow$), and signal observation chips.
+2. **Horizontal "Risk Journey" Stepper**: Visual turn timeline (`T1 ●──→ T2 ●──→ ...`) tracking cumulative risk, status halos, and turn transitions.
+3. **Transparent Decision Rationale Box**: Bulleted justification breakdown explaining threshold breaches, intent acceleration, semantic drift, and memory accumulation.
+4. **4-Tier State Machine Engine**: Dynamically illuminated path `[ALLOW] ──→ [WARN] ──→ [RESTRICT] ──→ [BLOCK]` reflecting real-time state changes and hysteresis release margins ($\delta = 0.15$).
+5. **Gauge Deltas & Dynamic Interpretations**: Real-time $\Delta H, \Delta E, \Delta S, \Delta B$ change rates and dynamic risk descriptions.
+6. **Trajectory Canvas Intervention Beacon**: Intervention point marked with a vertical dashed line and warning badge directly on the mathematical trajectory curve.
+7. **End-of-Scenario Completion Card**: Comprehensive scenario post-mortem displaying attack classification, peak risk, turns survived, and mitigation verdict.
+8. **One-Click Export Evaluation Report**: Generates and downloads full audit logs in JSON or Markdown format for red-team reproducibility.
+
+---
+
+## 9. Demonstration Scenarios & Red-Teaming Playbook
+
+A dedicated testing suite is provided in [`DEMO_TESTING_EXAMPLES.md`](file:///c:/Users/surya/Desktop/crescendo_jail_break/DEMO_TESTING_EXAMPLES.md) featuring 7 turnkey multi-turn evaluation scripts:
+- **4 Unseen Crescendo Exploits**:
+  - *In-Memory DLL Injection / Shellcode*: Gradual shift from Windows memory concepts to unhooking and reflective execution (blocked at Turn 4/5).
+  - *Executive Wire Transfer Fraud*: Gradual escalation from corporate authorization policies to forged Swift transfer templates (blocked at Turn 3/4).
+  - *CI/CD Supply Chain Poisoning*: Progression from build pipelines to malicious dependency typosquatting (blocked at Turn 3/4).
+  - *Critical Infrastructure SCADA Sabotage*: Transition from PLC programming to malicious Modbus register override logic (blocked at Turn 3/4).
+- **3 Benign Controls (0% FPR Validation)**:
+  - Linux DevOps log parsing, Cryptographic factoring theory, and Blue Team SOC incident forensics (all successfully processed with `ALLOW`).
+
+---
+
+## 10. Summary & Key Takeaways
 
 1. **Multi-turn attacks require stateful defense**: Static, single-prompt safety filters cannot detect Crescendo attacks because individual turns appear safe.
 2. **Inference-time defense works**: Combining semantic vector drift, behavioral patterns, and exponential risk memory provides complete protection (**0.00% ASR**) without fine-tuning model weights.
 3. **Robust against Red-Teaming**: The exponential decay memory ($\lambda=0.80$) and multi-signal risk fusion successfully block adaptive jittering and semantic smuggling attacks.
-4. **High efficiency & low cost**: Running lightweight embedding models on prompt text adds negligible latency (<5ms) while cutting overall server compute costs by early-terminating malicious sessions.
+4. **High efficiency & low cost**: Running lightweight embedding models on prompt text adds negligible latency (<25ms) while cutting overall server compute costs by early-terminating malicious sessions.
+5. **Interactive Research Transparency**: The upgraded Web Testbench renders mathematical risk trajectories and defense decisions immediately observable and explainable for security audits.
+
