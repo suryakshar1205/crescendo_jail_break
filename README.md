@@ -49,7 +49,15 @@ python scripts/generate_plots.py --all
 
 ## 🌐 Interactive Web Testbench
 
-The Crescendo Defense Framework includes a web-based testing console (`http://localhost:8080`):
+The Crescendo Defense Framework includes an interactive web-based testing console (`http://localhost:8080`):
+
+```powershell
+# Launch testbench with automated browser open and hot reloading
+python run_website.py
+```
+
+> **Testing & Demonstration Guide**: See [DEMO_TESTING_EXAMPLES.md](DEMO_TESTING_EXAMPLES.md) for step-by-step unseen multi-turn test scenarios (Crescendo attacks, social engineering, SCADA sabotage, and 0% FPR benign controls) ready to copy-paste into the web console.
+
 - **Live Multi-Turn Interception**: Type custom prompts or choose from 15 curated preset attacks (phishing, privilege escalation, lock picking, malware, social engineering) and benign dialogs.
 - **Real-Time 4-Signal Telemetry**: Live gauges for Harmfulness ($H_t$), Escalation Rate ($E_t$), Semantic Drift ($S_t$), and Refusal Bypass Resistance ($B_t$).
 - **Contextual Memory & Dynamic Thresholding**: Visualizes memory accumulation $C_t = \lambda C_{t-1} + (1-\lambda) CRS_t$ and dynamic threshold adaptation $T_t$.
@@ -247,7 +255,13 @@ crescendo_jail_break/
 │   ├── generate_plots.py              # Consolidated visualizer (Confusion matrix, ROC & stability curves)
 │   ├── generate_attack_variants.py    # Synthetic mutation generator (30 variants)
 │   ├── convert_single_to_multiturn.py # Converts single-turn benchmarks to multi-turn Crescendo
+│   ├── serve_web_demo.py              # Zero-dependency HTTP server with REST APIs & livereload
 │   └── run_full_pipeline.py           # Canonical end-to-end demo
+│
+├── web/                               # Interactive Web Testbench Frontend
+│   ├── index.html                     # Semantic cyber-dark glassmorphic dashboard
+│   ├── style.css                      # CSS design tokens, glowing gauges & animations
+│   └── app.js                         # State manager, real-time trajectory plotter & live-reload
 │
 ├── tests/
 │   ├── test_all.py                    # SINGLE MASTER TEST ENTRYPOINT (All 32 tests)
@@ -277,6 +291,8 @@ crescendo_jail_break/
 │       ├── final_ablation_study.json       # Component contribution metrics
 │       ├── faiss_benchmark_results.json    # Vector store latency scaling results
 │       └── lambda_sensitivity_sweep.json   # Memory decay sensitivity data
+├── DEMO_TESTING_EXAMPLES.md           # Copy-paste testing scenarios & live demonstration guide
+├── run_website.py                     # Web testbench launcher with zero-dependency hot reloading
 └── final_check_list.md                # 153/153 Requirements Adherence Checklist (100% Complete)
 
 ```
