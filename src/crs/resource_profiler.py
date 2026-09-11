@@ -4,7 +4,13 @@ Tracks CPU/GPU memory footprint, processing latency, and token overhead percenta
 """
 import os
 import psutil
-import torch
+try:
+    import torch
+    HAS_TORCH = True
+except Exception:
+    torch = None
+    HAS_TORCH = False
+
 from typing import Dict, Any, Optional
 
 class ResourceProfiler:
@@ -13,7 +19,7 @@ class ResourceProfiler:
     """
     def __init__(self, baseline_token_estimator: Optional[Any] = None):
         self.process = psutil.Process(os.getpid())
-        self.has_cuda = torch.cuda.is_available()
+        self.has_cuda = HAS_TORCH and torch.cuda.is_available()
 
     def get_hardware_snapshot(self) -> Dict[str, Any]:
         """Captures instantaneous process RAM and CUDA VRAM usage."""

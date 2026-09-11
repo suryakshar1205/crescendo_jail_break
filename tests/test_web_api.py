@@ -14,7 +14,7 @@ BASE_URL = "http://127.0.0.1:8080"
 
 def request_json(path: str, method: str = "GET", data: dict = None):
     url = f"{BASE_URL}{path}"
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json", "Connection": "close"}
     body = json.dumps(data).encode("utf-8") if data is not None else None
     req = urllib.request.Request(url, data=body, headers=headers, method=method)
     with urllib.request.urlopen(req, timeout=30) as resp:

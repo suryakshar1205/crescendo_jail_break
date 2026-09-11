@@ -282,9 +282,8 @@
     }
   }
 
-  // Turn Processing
-  async function processUserTurn(prompt) {
-    if (state.isProcessing) return;
+  async function processUserTurn(prompt, retryCount = 1) {
+    if (state.isProcessing && retryCount === 1) return;
     state.isProcessing = true;
     setControlsLoading(true);
 
@@ -304,10 +303,16 @@
 
       const turnData = await res.json();
       handleTurnSuccess(turnData);
+      state.isProcessing = false;
+      setControlsLoading(false);
     } catch (err) {
-      alert(`Error processing turn: ${err.message}`);
+      if (retryCount > 0) {
+        console.warn('Turn request failed, retrying in 600ms...', err);
+        await new Promise(r => setTimeout(r, 600));
+        return processUserTurn(prompt, retryCount - 1);
+      }
+      alert(`Error processing turn: ${err.message}. Ensure testbench server is online.`);
       console.error(err);
-    } finally {
       state.isProcessing = false;
       setControlsLoading(false);
     }
@@ -370,7 +375,7 @@
   }
 
   function updateVerdictBanner(turnData) {
-    const dec = turnData.decision;
+    const dec = turnData.decision || 'ALLOW';
     el.verdictBanner.className = `verdict-banner verdict-${dec.toLowerCase()}`;
     el.verdictTitle.textContent = dec;
 
@@ -384,32 +389,58 @@
       el.verdictIcon.textContent = '✅';
     }
 
-    el.valCrs.textContent = turnData.signals.CRS.toFixed(3);
-    el.valMemory.textContent = turnData.signals.C_t.toFixed(3);
-    el.valThreshold.textContent = turnData.signals.T_t.toFixed(3);
+    const sigs = turnData.signals || {};
+    const crs = Number(sigs.CRS ?? sigs.crs ?? 0);
+    const mem = Number(sigs.C_t ?? sigs.contextual_risk ?? sigs.historical_risk ?? 0);
+    const thr = Number(sigs.T_t ?? sigs.threshold ?? sigs.dynamic_threshold ?? 0.75);
+
+    el.valCrs.textContent = crs.toFixed(3);
+    el.valMemory.textContent = mem.toFixed(3);
+    el.valThreshold.textContent = thr.toFixed(3);
   }
 
   function updateGauges(signals) {
+    if (!signals) return;
+    const h = Number(signals.H ?? signals.harmfulness ?? signals.h_score ?? 0);
+    const e = Number(signals.E ?? signals.escalation ?? signals.e_score ?? 0);
+    const s = Number(signals.S ?? signals.semantic_drift ?? signals.s_score ?? 0);
+    const b = Number(signals.B ?? signals.bypass ?? signals.b_score ?? 0);
+
     // H
-    el.gaugeValH.textContent = signals.H.toFixed(3);
-    el.gaugeBarH.style.width = Math.min(100, signals.H * 100) + '%';
+    el.gaugeValH.textContent = h.toFixed(3);
+    el.gaugeBarH.style.width = Math.min(100, Math.max(0, h * 100)) + '%';
 
     // E
-    el.gaugeValE.textContent = signals.E.toFixed(3);
-    el.gaugeBarE.style.width = Math.min(100, signals.E * 100) + '%';
+    el.gaugeValE.textContent = e.toFixed(3);
+    el.gaugeBarE.style.width = Math.min(100, Math.max(0, e * 100)) + '%';
 
     // S
-    el.gaugeValS.textContent = signals.S.toFixed(3);
-    el.gaugeBarS.style.width = Math.min(100, signals.S * 100) + '%';
+    el.gaugeValS.textContent = s.toFixed(3);
+    el.gaugeBarS.style.width = Math.min(100, Math.max(0, s * 100)) + '%';
 
     // B
-    el.gaugeValB.textContent = signals.B.toFixed(3);
-    el.gaugeBarB.style.width = Math.min(100, signals.B * 100) + '%';
+    el.gaugeValB.textContent = b.toFixed(3);
+    el.gaugeBarB.style.width = Math.min(100, Math.max(0, b * 100)) + '%';
   }
 
   function updateExplainability(turnData) {
-    if (turnData.explanation) {
-      el.explainConsole.textContent = turnData.explanation.trim();
+    if (!turnData) return;
+    let text = '';
+    if (typeof turnData.explanation === 'string') {
+      text = turnData.explanation;
+    } else if (turnData.explanation && typeof turnData.explanation.text === 'string') {
+      text = turnData.explanation.text;
+    } else if (typeof turnData.explain_text === 'string') {
+      text = turnData.explain_text;
+    } else if (turnData.explanation) {
+      try {
+        text = JSON.stringify(turnData.explanation, null, 2);
+      } catch (e) {
+        text = String(turnData.explanation);
+      }
+    }
+    if (el.explainConsole) {
+      el.explainConsole.textContent = text ? text.trim() : 'Safe Dialogue.';
     }
   }
 
@@ -613,10 +644,35 @@
       .replace(/'/g, '&#039;');
   }
 
+  // Live Hot-Reload Watcher for Frontend Assets
+  function startLiveReloadWatcher() {
+    let initialMtime = null;
+    setInterval(async () => {
+      if (state.isProcessing) return;
+      try {
+        const res = await fetch('/api/livereload');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (initialMtime === null) {
+          initialMtime = data.mtime;
+        } else if (data.mtime > initialMtime + 0.1) {
+          console.log('[HotReload] File modification detected. Hot-reloading testbench...');
+          window.location.reload();
+        }
+      } catch (e) {
+        // Server might be restarting, ignore blips
+      }
+    }, 1200);
+  }
+
   // Run on DOM ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+      startLiveReloadWatcher();
+    });
   } else {
     init();
+    startLiveReloadWatcher();
   }
 })();

@@ -8,9 +8,10 @@ the live Crescendo PRD defense pipeline and serve the real-time telemetry dashbo
 
 import os
 import sys
+import time
 import json
 import logging
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 import urllib.parse
 
 # Set headless Matplotlib backend
@@ -127,6 +128,7 @@ class CrescendoHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Connection", "close")
         self.end_headers()
         self.wfile.write(body)
 
@@ -135,11 +137,28 @@ class CrescendoHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Connection", "close")
         self.end_headers()
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
+
+        if path == "/favicon.ico":
+            self.send_response(204)
+            self.end_headers()
+            return
+
+        if path == "/api/livereload":
+            web_dir = os.path.join(PROJECT_ROOT, "web")
+            mtimes = [
+                os.path.getmtime(os.path.join(web_dir, f))
+                for f in os.listdir(web_dir)
+                if os.path.isfile(os.path.join(web_dir, f))
+            ]
+            latest_mtime = max(mtimes) if mtimes else time.time()
+            self._send_json(200, {"status": "ok", "mtime": latest_mtime})
+            return
 
         if path == "/api/scenarios":
             scenarios = load_preset_scenarios()
@@ -210,6 +229,12 @@ class CrescendoHTTPRequestHandler(SimpleHTTPRequestHandler):
                 turn_number = result.get("turn_number", 1)
                 mock_response = generate_mock_assistant_response(user_prompt, decision, turn_number)
 
+                explain_obj = result.get("explanation", {})
+                explain_text = result.get(
+                    "explain_text",
+                    explain_obj.get("text", "") if isinstance(explain_obj, dict) else str(explain_obj)
+                )
+
                 response_payload = {
                     "status": "success",
                     "session_id": session_id,
@@ -218,19 +243,20 @@ class CrescendoHTTPRequestHandler(SimpleHTTPRequestHandler):
                     "decision": decision,
                     "response": mock_response,
                     "signals": {
-                        "H": round(result.get("h_score", 0.0), 4),
-                        "E": round(result.get("e_score", 0.0), 4),
-                        "S": round(result.get("s_score", 0.0), 4),
-                        "B": round(result.get("b_score", 0.0), 4),
-                        "CRS": round(result.get("crs", 0.0), 4),
-                        "C_t": round(result.get("contextual_risk", 0.0), 4),
-                        "T_t": round(result.get("dynamic_threshold", 0.75), 4),
-                        "trend": round(result.get("trend_score", 0.0), 4),
-                        "persistence": round(result.get("persistence_score", 0.0), 4)
+                        "H": round(float(result.get("H", result.get("harmfulness", result.get("h_score", 0.0)))), 4),
+                        "E": round(float(result.get("E", result.get("escalation", result.get("e_score", 0.0)))), 4),
+                        "S": round(float(result.get("S", result.get("semantic_drift", result.get("s_score", 0.0)))), 4),
+                        "B": round(float(result.get("B", result.get("bypass", result.get("b_score", 0.0)))), 4),
+                        "CRS": round(float(result.get("crs", 0.0)), 4),
+                        "C_t": round(float(result.get("contextual_risk", result.get("historical_risk", 0.0))), 4),
+                        "T_t": round(float(result.get("threshold", result.get("dynamic_threshold", 0.75))), 4),
+                        "trend": round(float(result.get("trend", result.get("trend_score", 0.0))), 4),
+                        "persistence": round(float(result.get("persistence", result.get("persistence_score", 0.0))), 4)
                     },
                     "active_signals": result.get("active_signals", []),
                     "latency_ms": result.get("latency_breakdown", {}),
-                    "explanation": result.get("explanation", "")
+                    "explanation": explain_text,
+                    "explanation_details": explain_obj if isinstance(explain_obj, dict) else {}
                 }
                 self._send_json(200, response_payload)
             except Exception as e:
@@ -252,11 +278,12 @@ def main():
     get_pipeline()
 
     server_address = (args.host, args.port)
-    httpd = HTTPServer(server_address, CrescendoHTTPRequestHandler)
+    httpd = ThreadingHTTPServer(server_address, CrescendoHTTPRequestHandler)
     print("=" * 65)
     print(f"  CRESCENDO DEFENSE WEB TESTBENCH RUNNING")
-    print(f"  Local Dashboard: http://{args.host}:{args.port}/")
-    print(f"  REST API:        http://{args.host}:{args.port}/api/turn")
+    print(f"  Local Dashboard: http://127.0.0.1:{args.port}/")
+    print(f"  Local Dashboard: http://localhost:{args.port}/")
+    print(f"  REST API:        http://127.0.0.1:{args.port}/api/turn")
     print("=" * 65)
     sys.stdout.flush()
 

@@ -30,18 +30,36 @@ pip install -r requirements.txt
 huggingface-cli login
 # Or set token: $env:HF_TOKEN="your_token_here"  (PowerShell)
 
-# 5. Run mock validation (no model weights needed, <5s)
-python -m pytest tests/
-python scripts/run_full_pipeline.py --mock_inference
+# 5. Launch Interactive Web Testbench & Visual Dashboard
+python run_website.py
+# (Automatically boots the server and opens http://localhost:8080 in your browser)
 
-# 6. Run single phase benchmark
-python scripts/run_phase4.py --mock_inference
+# 6. Run Certified Master Test Suite (All 32 tests)
+python tests/test_all.py
 
-# 7. Run full pipeline (requires model weights + sufficient RAM)
-python scripts/run_full_pipeline.py
+# 7. Run Research Milestones (Phases 1 through 9)
+python scripts/run_phase.py --all --mock_inference   # Run all 9 phases
+python scripts/run_phase.py --phase 4 --mock_inference # Run single phase
+
+# 8. Generate Benchmark Visualization Curves & Confusion Matrices
+python scripts/generate_plots.py --all
 ```
 
 ---
+
+## 🌐 Interactive Web Testbench
+
+The Crescendo Defense Framework includes a web-based testing console (`http://localhost:8080`):
+- **Live Multi-Turn Interception**: Type custom prompts or choose from 15 curated preset attacks (phishing, privilege escalation, lock picking, malware, social engineering) and benign dialogs.
+- **Real-Time 4-Signal Telemetry**: Live gauges for Harmfulness ($H_t$), Escalation Rate ($E_t$), Semantic Drift ($S_t$), and Refusal Bypass Resistance ($B_t$).
+- **Contextual Memory & Dynamic Thresholding**: Visualizes memory accumulation $C_t = \lambda C_{t-1} + (1-\lambda) CRS_t$ and dynamic threshold adaptation $T_t$.
+- **Interactive Multi-Turn Risk Trajectory Graph**: Plots the exact turn-by-turn trajectory of $CRS_t$, $C_t$, and $T_t$, highlighting the interception beacon where attacks are blocked before reaching toxic payloads.
+- **Latency Profiling**: Milliseconds breakdown across all safety layers within SLA bounds.
+- **REST API Endpoints**:
+  - `POST /api/turn`: Evaluates a single conversation turn through the full PRD pipeline.
+  - `POST /api/reset`: Resets session history, memory state, and hysteresis.
+  - `GET /api/scenarios`: Returns catalog of multi-turn attack and benign benchmarks.
+  - `GET /api/status`: Returns current pipeline configuration and active sessions.
 
 ## Project Overview
 
