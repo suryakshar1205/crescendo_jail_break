@@ -39,6 +39,9 @@
           <span class="status-dot"></span>
           <span id="systemStatusText">PRD Pipeline Active</span>
         </div>
+        <button id="exportReportBtn" class="btn btn-secondary btn-sm" title="Export session evaluation audit report as JSON & Markdown">
+          <span class="btn-icon">📥</span> Export Report
+        </button>
         <button id="resetSessionBtn" class="btn btn-secondary btn-sm" title="Reset all memory and hysteresis for session">
           <span class="btn-icon">↻</span> Reset Session
         </button>
@@ -74,13 +77,28 @@
         </div>
       </section>
 
+      <!-- Risk Journey Stepper -->
+      <section class="risk-journey-container" id="riskJourneyContainer">
+        <div class="risk-journey-header">
+          <div class="journey-title-block">
+            <span class="journey-icon">📈</span>
+            <span class="journey-label">CONVERSATIONAL RISK JOURNEY</span>
+            <span class="journey-sub">Multi-turn trajectory & escalation milestones</span>
+          </div>
+          <div class="journey-summary" id="journeySummaryText">Awaiting turn evaluation...</div>
+        </div>
+        <div class="risk-journey-track" id="riskJourneyTrack">
+          <div class="journey-step-placeholder">Select a scenario or send a turn to watch the escalation journey unfold</div>
+        </div>
+      </section>
+
       <!-- Split Layout: Chat vs Telemetry -->
       <main class="content-grid">
         <!-- Left Panel: Chat Interface -->
         <section class="panel chat-panel">
           <div class="panel-header">
             <div class="panel-title">
-              <span class="panel-icon">💬</span> Conversation Stream
+              <span class="panel-icon">💬</span> Conversation Stream & Security Cards
             </div>
             <div class="session-badge">
               Session: <code id="activeSessionId">session-live-01</code>
@@ -154,7 +172,7 @@
               </div>
               <div class="verdict-details">
                 <div class="verdict-stat">
-                  <span class="v-name">CRS<sub>t</sub></span>
+                  <span class="v-name">CRS<sub>t</sub> (Turn)</span>
                   <span class="v-val" id="valCrs">0.000</span>
                 </div>
                 <div class="verdict-stat">
@@ -168,6 +186,49 @@
               </div>
             </div>
 
+            <!-- Dual-Threshold Stateful Hysteresis Path -->
+            <div class="state-machine-box">
+              <div class="state-machine-label">HYSTERESIS STATE ENGINE:</div>
+              <div class="state-machine-track">
+                <div class="state-node" id="stateNodeAllow">
+                  <span class="node-dot"></span>
+                  <span class="node-name">ALLOW</span>
+                </div>
+                <span class="state-arrow">→</span>
+                <div class="state-node" id="stateNodeWarn">
+                  <span class="node-dot"></span>
+                  <span class="node-name">WARN</span>
+                </div>
+                <span class="state-arrow">→</span>
+                <div class="state-node" id="stateNodeRestrict">
+                  <span class="node-dot"></span>
+                  <span class="node-name">RESTRICT</span>
+                </div>
+                <span class="state-arrow">→</span>
+                <div class="state-node" id="stateNodeBlock">
+                  <span class="node-dot"></span>
+                  <span class="node-name">BLOCK</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Decision Rationale Box -->
+            <div class="decision-rationale-box" id="decisionRationaleBox">
+              <div class="rationale-header">
+                <span class="rationale-icon">💡</span>
+                <span class="rationale-title">DECISION RATIONALE</span>
+              </div>
+              <ul class="rationale-list" id="decisionRationaleList">
+                <li>System ready. Real-time composite risk evaluation active across 4 orthogonal safety layers.</li>
+              </ul>
+            </div>
+
+            <!-- Memory Comparison Context Line -->
+            <div class="memory-comparison-banner" id="memoryComparisonBanner">
+              <span class="cmp-badge">Contextual Risk:</span>
+              <span class="cmp-text" id="memoryComparisonText">Historical memory is clear ($C_t = 0.000$). Standard single-turn tolerance.</span>
+            </div>
+
             <!-- Signal Gauges Grid -->
             <div class="telemetry-section-title">SECURITY ANALYZER SIGNALS</div>
             <div class="gauges-grid">
@@ -177,12 +238,14 @@
                   <span class="signal-badge badge-h">H</span>
                   <span class="gauge-name">Harmfulness</span>
                   <span class="gauge-weight">(40%)</span>
+                  <span class="gauge-delta" id="gaugeDeltaH">—</span>
                 </div>
                 <div class="gauge-value" id="gaugeValH">0.000</div>
                 <div class="progress-track">
                   <div class="progress-fill fill-h" id="gaugeBarH" style="width: 0%"></div>
                 </div>
                 <div class="gauge-meta">Keyword & semantic safety</div>
+                <div class="gauge-dynamic-meaning" id="gaugeMeaningH">Baseline compliant</div>
               </div>
 
               <!-- Intent Escalation Gauge -->
@@ -191,12 +254,14 @@
                   <span class="signal-badge badge-e">E</span>
                   <span class="gauge-name">Escalation</span>
                   <span class="gauge-weight">(30%)</span>
+                  <span class="gauge-delta" id="gaugeDeltaE">—</span>
                 </div>
                 <div class="gauge-value" id="gaugeValE">0.000</div>
                 <div class="progress-track">
                   <div class="progress-fill fill-e" id="gaugeBarE" style="width: 0%"></div>
                 </div>
                 <div class="gauge-meta">Turn-over-turn intent slope</div>
+                <div class="gauge-dynamic-meaning" id="gaugeMeaningE">No intent acceleration</div>
               </div>
 
               <!-- Semantic Drift Gauge -->
@@ -205,12 +270,14 @@
                   <span class="signal-badge badge-s">S</span>
                   <span class="gauge-name">Semantic Drift</span>
                   <span class="gauge-weight">(20%)</span>
+                  <span class="gauge-delta" id="gaugeDeltaS">—</span>
                 </div>
                 <div class="gauge-value" id="gaugeValS">0.000</div>
                 <div class="progress-track">
                   <div class="progress-fill fill-s" id="gaugeBarS" style="width: 0%"></div>
                 </div>
                 <div class="gauge-meta">Cosine distance to turn 1 anchor</div>
+                <div class="gauge-dynamic-meaning" id="gaugeMeaningS">Anchor aligned</div>
               </div>
 
               <!-- Bypass Detector Gauge -->
@@ -219,12 +286,14 @@
                   <span class="signal-badge badge-b">B</span>
                   <span class="gauge-name">Bypass Resistance</span>
                   <span class="gauge-weight">(10%)</span>
+                  <span class="gauge-delta" id="gaugeDeltaB">—</span>
                 </div>
                 <div class="gauge-value" id="gaugeValB">0.000</div>
                 <div class="progress-track">
                   <div class="progress-fill fill-b" id="gaugeBarB" style="width: 0%"></div>
                 </div>
                 <div class="gauge-meta">Jailbreak patterns & refusal resistance</div>
+                <div class="gauge-dynamic-meaning" id="gaugeMeaningB">No evasion markers</div>
               </div>
             </div>
 
