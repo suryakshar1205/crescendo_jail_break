@@ -229,6 +229,7 @@ crescendo_jail_break/
 │   └── run_full_pipeline.py           # Canonical end-to-end demo
 │
 ├── tests/
+│   ├── test_all.py                    # SINGLE MASTER TEST ENTRYPOINT (All 32 tests)
 │   ├── test_crs_pipeline.py           # Canonical pipeline integration tests (6 tests)
 │   ├── test_crs_boundaries.py         # Exact decision threshold & clamping tests (11 tests)
 │   ├── test_faiss_vector_store.py     # FAISS engine, latency SLA & persistence tests (7 tests)
@@ -237,8 +238,15 @@ crescendo_jail_break/
 │       ├── test_known_attacks.py      # Multi-corpus regression suite (5 tests, 58 attacks)
 │       └── test_benign_conversations.py # Benign regression suite (1 test, 50 conversations)
 │
+├── docs/                              # Project Documentation
+│   ├── final_check_list.md            # 153/153 Requirements Adherence Checklist (100% Complete)
+│   ├── research_plan.md               # Scientific research plan & hypotheses
+│   ├── memory_diagnostics.md          # System memory & Windows paging diagnostics
+│   └── diagrams/                      # System architecture diagrams
+│
 ├── reports/
 │   ├── master_crescendo_defense_final_report.md # Master technical & verification report
+│   ├── crescendo_defense_explanatory_report.md  # Comprehensive explanatory report
 │   ├── viva_defense_guide.md          # Comprehensive viva & oral defense cheatsheet
 │   └── phase5/faiss_indexing_report.md # Detailed FAISS vector indexing architecture report
 │

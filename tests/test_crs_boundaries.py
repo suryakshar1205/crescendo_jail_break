@@ -27,7 +27,8 @@ from src.crs.decision_engine import AdaptiveDecisionEngine, DecisionAction
 from src.crs.harmfulness import HarmfulnessAnalyzer
 from src.crs.intent_escalation import IntentEscalationAnalyzer
 from src.crs.jailbreak_similarity import JailbreakSimilarityAnalyzer
-from src.crs.behavioral_bypass import RefusalBypassAnalyzer
+from src.crs.bypass_detection import RefusalBypassAnalyzer
+
 
 
 class TestScoreNormalizationAndRanges(unittest.TestCase):
