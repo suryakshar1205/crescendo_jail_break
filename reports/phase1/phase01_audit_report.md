@@ -18,7 +18,7 @@ This report presents a formal security and reproducibility audit of Phase 0 (Res
 ## 2. Phase 0 Verification
 
 ### 2.1 Research Plan Audit (`research_plan.md`)
-The planning document at [research_plan.md](file:///c:/Users/surya/Desktop/aims-dtu/research_plan.md) was inspected for compliance with academic guidelines and specific requirements.
+The planning document at [research_plan.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/research_plan.md) was inspected for compliance with academic guidelines and specific requirements.
 
 | Section | Required Topic | Status | Notes / Content Found |
 | :--- | :--- | :---: | :--- |
@@ -36,7 +36,7 @@ The planning document at [research_plan.md](file:///c:/Users/surya/Desktop/aims-
 | **12** | Success Criteria | **PASS** | Avoids static numerical goals; targets joint optimization of ASR, FPR, and latency. |
 
 ### 2.2 Frozen Generation Settings
-Settings are stored in [configs/generation_config.json](file:///c:/Users/surya/Desktop/aims-dtu/configs/generation_config.json) and were verified to contain:
+Settings are stored in [configs/generation_config.json](file:///c:/Users/surya/Desktop/crescendo_jail_break/configs/generation_config.json) and were verified to contain:
 ```json
 {
   "temperature": 0.7,
@@ -127,8 +127,8 @@ The benchmarking runner was executed end-to-end:
 `python -m src.benchmark`
 
 * **Benchmark Telemetry**:
-  * CSV Output created at [results/csv/baseline_results.csv](file:///c:/Users/surya/Desktop/aims-dtu/results/csv/baseline_results.csv)
-  * JSON Output created at [results/json/baseline_results.json](file:///c:/Users/surya/Desktop/aims-dtu/results/json/baseline_results.json)
+  * CSV Output created at [results/csv/baseline_results.csv](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/csv/baseline_results.csv)
+  * JSON Output created at [results/json/baseline_results.json](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/json/baseline_results.json)
 * **CSV Columns Check**:
   Verified header line matches the exact schema:
   `experiment_id,attack_id,turn_number,response,attack_success,latency_ms`

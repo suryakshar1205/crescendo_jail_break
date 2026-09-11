@@ -32,7 +32,7 @@ Initializing the single-shard, 4.96 GB `model.safetensors` file on a host with o
 
 ### 2.2 The Solution
 A custom memory-safe streaming loader was implemented with the following elements:
-1. **Manual Model Resharding**: A manual resharding utility was created to split the single large tensor file into **13 smaller shards** (~400–500 MB each) and construct a compliant `model.safetensors.index.json` map under [models/Llama-3.2-3B-Instruct-sharded/](file:///c:/Users/surya/Desktop/aims-dtu/models/Llama-3.2-3B-Instruct-sharded/).
+1. **Manual Model Resharding**: A manual resharding utility was created to split the single large tensor file into **13 smaller shards** (~400–500 MB each) and construct a compliant `model.safetensors.index.json` map under [models/Llama-3.2-3B-Instruct-sharded/](file:///c:/Users/surya/Desktop/crescendo_jail_break/models/Llama-3.2-3B-Instruct-sharded/).
 2. **Sequential Memory-Mapped Allocation**: Configured Hugging Face `from_pretrained()` loading options:
    * `low_cpu_mem_usage=True`: Initializes the model layers on the `meta` device first, then swaps in weights sequentially, limiting peak RAM usage to single-shard overhead.
    * `torch_dtype=torch.bfloat16`: Reduces model precision to 16-bit, saving 50% RAM compared to fp32 loading.
@@ -59,10 +59,10 @@ Loading checkpoint shards: 100%|##########| 13/13 [00:00<00:00, 848.81it/s]
 In original runs, the rule-based evaluator suffered from high false-negative rates for refusal detection (under-detecting refusals and inflating ASR to 80%). It failed to match common contraction and colloquial variations of refusals, classifying responses like *"I can't assist with this request."* as a successful jailbreak.
 
 ### 3.2 Implemented Fixes in `src/evaluator.py`
-The [evaluator.py](file:///c:/Users/surya/Desktop/aims-dtu/src/evaluator.py) was refactored to achieve robust refusal detection:
+The [evaluator.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/src/evaluator.py) was refactored to achieve robust refusal detection:
 1. **Contraction Mapping**: Expanded the detection dictionary to cover over 40 distinct variations of standard and contracted refusal statements (`i can't`, `i cannot`, `unable to`, `won't provide`, `cannot assist`, etc.).
 2. **Text Normalization Utility**: Integrated a `normalize_text()` pipeline that lowercases incoming text, collapses arbitrary spacing, tabs, and newlines into single spaces, and strips out excess margins while preserving apostrophes for contraction alignment.
-3. **Unit Test Coverage**: Created a test suite under [test_evaluator.py](file:///c:/Users/surya/Desktop/aims-dtu/tests/test_evaluator.py) executing **51 distinct test scenarios** checking contractions, mixed casing, multiline inputs, empty states, and exact responses from the benchmark dataset. All 51 tests pass successfully.
+3. **Unit Test Coverage**: Created a test suite under [test_evaluator.py](file:///c:/Users/surya/Desktop/crescendo_jail_break/tests/test_evaluator.py) executing **51 distinct test scenarios** checking contractions, mixed casing, multiline inputs, empty states, and exact responses from the benchmark dataset. All 51 tests pass successfully.
 
 ---
 
@@ -104,7 +104,7 @@ The benchmark executed end-to-end over **44 minutes**, running 10 attack session
 
 To ensure identical validation runs across environments, the generation configuration is locked:
 
-* **Generation Configuration Path**: [configs/generation_config.json](file:///c:/Users/surya/Desktop/aims-dtu/configs/generation_config.json)
+* **Generation Configuration Path**: [configs/generation_config.json](file:///c:/Users/surya/Desktop/crescendo_jail_break/configs/generation_config.json)
 * **Configuration Parameters**:
   ```json
   {
@@ -123,9 +123,9 @@ To ensure identical validation runs across environments, the generation configur
 
 All benchmark outputs are persisted in the workspace:
 
-1. **Turn-by-Turn CSV Records**: [results/csv/baseline_results.csv](file:///c:/Users/surya/Desktop/aims-dtu/results/csv/baseline_results.csv)
+1. **Turn-by-Turn CSV Records**: [results/csv/baseline_results.csv](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/csv/baseline_results.csv)
    * Formatted with columns: `experiment_id`, `attack_id`, `turn_number`, `response`, `attack_success`, and `latency_ms`.
-2. **Aggregated JSON Metrics & Interaction Log**: [results/json/baseline_results.json](file:///c:/Users/surya/Desktop/aims-dtu/results/json/baseline_results.json)
+2. **Aggregated JSON Metrics & Interaction Log**: [results/json/baseline_results.json](file:///c:/Users/surya/Desktop/crescendo_jail_break/results/json/baseline_results.json)
    * Tracks full prompt histories, individual responses, latency records, and overall ASR/FPR values.
 
 ---

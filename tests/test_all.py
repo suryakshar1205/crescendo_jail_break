@@ -16,6 +16,12 @@ Usage:
 """
 import os
 import sys
+
+# Prevent OpenMP runtime collision & headless matplotlib on Windows
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MPLBACKEND"] = "Agg"
+
 import unittest
 
 # Ensure project root is in sys.path

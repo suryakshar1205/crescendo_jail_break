@@ -1,7 +1,7 @@
 # Repository Standardization Report
 
 **Date:** June 2026  
-**Project:** Crescendo Jailbreak Defense — AIMS-DTU  
+**Project:** Crescendo Jailbreak Defense  
 **Version:** v1.0-research-final
 
 ---
@@ -35,7 +35,7 @@ Transform the development workspace into a clean, research-grade, submission-rea
 ## Final Directory Structure Compliance
 
 ```
-aims-dtu/
+crescendo_jail_break/
 ├── README.md                     ✅
 ├── VERSION                       ✅
 ├── requirements.txt              ✅
@@ -151,4 +151,4 @@ All benchmark harnesses support `--mock_inference` for logic validation without 
 
 ## Conclusion
 
-The repository has been successfully standardized to research-grade quality. All 9 corrections from the specification have been implemented. The workspace is clean, organized, reproducible, and ready for AIMS-DTU submission.
+The repository has been successfully standardized to research-grade quality. All 9 corrections from the specification have been implemented. The workspace is clean, organized, reproducible, and ready for evaluation and deployment.

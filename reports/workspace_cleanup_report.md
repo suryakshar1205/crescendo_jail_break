@@ -1,7 +1,7 @@
 # Workspace Cleanup Report
 
 **Date:** June 2026  
-**Scope:** Full repository standardization for AIMS-DTU submission  
+**Scope:** Full repository standardization and evaluation packaging  
 **Version:** v1.0-research-final
 
 ---

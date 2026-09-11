@@ -1,7 +1,7 @@
 # Research Plan: Multi-Layer Mitigation of Multi-Turn Crescendo Jailbreak Attacks on Llama-3.2-3B-Instruct
 
 ## 1. Problem Statement
-Large Language Models (LLMs), such as `Llama-3.2-3B-Instruct`, are aligned using Reinforcement Learning from Human Feedback (RLHF) and direct preference optimization (DPO) to refuse harmful queries. However, safety alignment typically assumes single-turn or simple multi-turn adversarial inputs. Recently, *Crescendo-style* multi-turn jailbreak attacks have exposed a critical vulnerability: by using progressive escalation, semantic drift, memory stacking, and prompt disguising across multiple conversation turns, an attacker can steer an aligned model to generate harmful, restricted content without triggering standard safety refusals. This project aims to systematically analyze, detect, and mitigate these multi-turn exploits through a structured, multi-layer defense pipeline.
+Large Language Models (LLMs), such as `Llama-3.2-3B-Instruct`, are aligned using Reinforcement Learning from Human Feedback (RLHF) and direct preference optimization (DPO) to refuse harmful queries. However, safety alignment typically assumes single-turn or simple multi-turn adversarial inputs. Recently, *Crescendo-style* multi-turn jailbreak attacks have exposed a critical vulnerability: by using progressive escalation, semantic drift, memory stacking, and prompt disguising across multiple conversation turns, an attacker can steer an aligned model to generate harmful, restricted content without triggering standard safety refusals. This project seeks to systematically analyze, detect, and mitigate these multi-turn exploits through a structured, multi-layer defense pipeline.
 
 ---
 

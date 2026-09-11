@@ -10,7 +10,7 @@
 [![Python Version](https://img.shields.io/badge/Python-3.9%20|%203.10%20|%203.11%20|%203.12-blue?style=flat-square&logo=python)](requirements.txt)
 [![Checklist Adherence](https://img.shields.io/badge/Specification-153%2F153%20Requirements%20(100%25)-success?style=flat-square)](final_check_list.md)
 
-> **Research Milestone — AIMS-DTU Research Project**  
+> **Research Milestone — Crescendo Adversarial Robustness Project**  
 > An inference-time, stateful multi-turn jailbreak defense framework that protects Large Language Models (evaluated on `meta-llama/Llama-3.2-3B-Instruct`) against Crescendo conversational exploits. The framework achieves **0.00% Attack Success Rate (ASR)**, **0.00% False Positive Rate (FPR)**, and **100.00% Defense Detection Rate (DDR)** across 58 multi-turn attacks from 5 distinct benchmark corpora.
 
 ---
@@ -506,14 +506,12 @@ If you utilize this defense framework, benchmarks, or methodology in your academ
 ```bibtex
 @article{crescendo_defense_2026,
   title={Adaptive Multi-Turn Jailbreak Defense for Large Language Models via Composite Risk Scoring and Dynamic Hysteresis},
-  author={AIMS-DTU Research Group},
-  journal={Advanced Information and Machine Systems Research},
+  author={AI Safety & Adversarial Robustness Research Group},
   year={2026},
-  institution={Delhi Technological University (DTU)},
   note={Verified 0.00% ASR, 0.00% FPR across 58 multi-turn adversarial corpora}
 }
 ```
 
 ---
 
-*AIMS-DTU Research Project | Specification Adherence: 153/153 Requirements Certified | June 2026*
+*Adversarial Safety Research Project | Specification Adherence: 153/153 Requirements Certified | June 2026*

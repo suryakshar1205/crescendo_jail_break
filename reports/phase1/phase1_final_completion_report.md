@@ -65,8 +65,8 @@ We ran the baseline chat interactive tester via `python -m src.baseline_chat`.
 ## 6. Dataset & Output Schema Validation (Step 7 & 8)
 
 * **Dataset Validation**:
-  - [crescendo_attacks.json](file:///c:/Users/surya/Desktop/aims-dtu/data/attacks/crescendo_attacks.json): contains 10 progressive attacks, 4-8 turns each, categories A01-A10 present.
-  - [benign_chats.json](file:///c:/Users/surya/Desktop/aims-dtu/data/benign/benign_chats.json): contains 50 multi-turn benign chats covering 9 domains.
+  - [crescendo_attacks.json](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/attacks/crescendo_attacks.json): contains 10 progressive attacks, 4-8 turns each, categories A01-A10 present.
+  - [benign_chats.json](file:///c:/Users/surya/Desktop/crescendo_jail_break/data/benign/benign_chats.json): contains 50 multi-turn benign chats covering 9 domains.
 * **Output CSV/JSON Schema**:
   - CSV outputs at `results/csv/baseline_results.csv` match the schema: `experiment_id,attack_id,turn_number,response,attack_success,latency_ms`.
   - JSON summary metrics and details output successfully at `results/json/baseline_results.json`.
