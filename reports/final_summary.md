@@ -68,9 +68,21 @@ The evolution of performance metrics across all development phases:
 
 ---
 
-## 4. Key Scientific Reports
+## 4. Key Scientific & Phase Reports
 
-For detailed analyses and scientific verification, see:
-1. **[failure_analysis.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase5/failure_analysis.md)**: Near-miss latency details and component ablation findings.
-2. **[generalization_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase5/generalization_report.md)**: Evaluation comparison between seen validation dataset and unseen holdout.
-3. **[phase5_comparative_analysis.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase5/phase5_comparative_analysis.md)**: Unified progression details from Phase 1 to Phase 5.
+The complete development lifecycle is documented across dedicated phase reports:
+1. **Phase 1 (Baseline Vulnerability)**: [phase1_final_completion_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase1/phase1_final_completion_report.md)
+2. **Phase 2 (Semantic Drift Detection)**: [phase2_refinement_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase2/phase2_refinement_report.md)
+3. **Phase 3 (Behavioral Rules & Fusion)**: [phase3_completion_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase3/phase3_completion_report.md)
+4. **Phase 4 (Conversation Memory Engine)**: [phase4_detection_examples.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase4/phase4_detection_examples.md)
+5. **Phase 5 (Holdout Validation & FAISS Indexing)**: [faiss_indexing_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase5/faiss_indexing_report.md) & [generalization_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase5/generalization_report.md)
+6. **Phase 6 (LLM-as-a-Judge Evaluation)**: [agreement_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase6/agreement_report.md)
+7. **Phase 7 (Dynamic Threshold Calibration)**: [calibration_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase7/calibration_report.md)
+8. **Phase 8 (Adaptive Adversary Red-Teaming & Profiling)**: [red_team_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase8/red_team_report.md) & [resource_overhead_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/resource_overhead_report.md)
+9. **Phase 9 (Cross-Model Validation & Generalization)**: [cross_model_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/phase9/cross_model_report.md)
+
+**Comprehensive Synthesis Reports**:
+* **Master Technical & Oral Defense Report**: [master_crescendo_defense_final_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/master_crescendo_defense_final_report.md)
+* **Oral Viva Defense Cheatsheet**: [viva_defense_guide.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/viva_defense_guide.md)
+* **Explanatory Architecture Guide**: [crescendo_defense_explanatory_report.md](file:///c:/Users/surya/Desktop/crescendo_jail_break/reports/crescendo_defense_explanatory_report.md)
+

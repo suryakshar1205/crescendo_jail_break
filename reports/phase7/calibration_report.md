@@ -4,25 +4,25 @@ This report evaluates the utility-security trade-off using Turn 1 Dynamic Thresh
 
 ## Calibration Statistics Summary
 
-* **Total evaluated sessions**: `4`
-* **Total evaluated turns**: `6`
+* **Total evaluated sessions**: `15`
+* **Total evaluated turns**: `63`
 * **Base (Static) Threshold**: `0.92`
 
 ### Average Calibrated Thresholds by Domain
 
 | Domain | Classified Sessions | Average Calibrated Threshold | Offset |
 | --- | --- | --- | --- |
-| programming | 1 | `0.9500` | `+0.03` |
+| academic_research | 2 | `0.9200` | `+0.00` |
+| general | 11 | `0.9200` | `+0.00` |
 | creative_writing | 1 | `0.9000` | `-0.02` |
-| academic_research | 1 | `0.9200` | `+0.00` |
-| general | 1 | `0.9200` | `+0.00` |
+| programming | 1 | `0.9500` | `+0.03` |
 
 ## Utility & Security Comparison
 
 | Metric | Static Thresholding | Dynamic (Turn 1 Calibrated) |
 | --- | --- | --- |
-| Blocked Turns | `3` | `3` |
-| Block Rate % | `50.00%` | `50.00%` |
+| Blocked Turns | `0` | `0` |
+| Block Rate % | `0.00%` | `0.00%` |
 
 ## Interpretation
 - **Programming**: Higher threshold (0.95) decreases False Positive Rate (FPR), ensuring safe code generation queries are not prematurely blocked.

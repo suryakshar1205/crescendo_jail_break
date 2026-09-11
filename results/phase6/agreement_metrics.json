@@ -1,5 +1,5 @@
 {
-  "total_evaluated_turns": 56,
-  "observed_agreement_pct": 94.6429,
-  "cohen_kappa_score": 0.8842
+  "total_evaluated_turns": 63,
+  "observed_agreement_pct": 100.0,
+  "cohen_kappa_score": 1.0
 }

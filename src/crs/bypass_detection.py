@@ -83,6 +83,8 @@ class RefusalBypassAnalyzer:
         if not history:
             return {
                 "score": 0.0,
+                "refusal_bypass_score": 0.0,
+                "is_post_refusal": False,
                 "label": "low",
                 "signals": [],
                 "explanation": "Empty dialogue history: no bypass behavior.",
@@ -166,6 +168,8 @@ class RefusalBypassAnalyzer:
 
         return {
             "score": round(b_score, 4),
+            "refusal_bypass_score": round(b_score, 4),
+            "is_post_refusal": is_post_refusal,
             "label": label,
             "signals": active_signals,
             "explanation": explanation,

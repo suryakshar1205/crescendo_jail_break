@@ -220,10 +220,13 @@ crescendo_jail_break/
 │   ├── phase1/ - phase9/              # Longitudinal research phase implementations
 │
 ├── scripts/
+│   ├── run_prd_pipeline.py            # Primary interactive & batch defense benchmark runner
 │   ├── verify_results_audit.py        # Reproduces 58-attack & 50-benign evaluation audit
 │   ├── run_final_ablation_study.py    # Component ablation across H, E, S, B, Memory, Threshold
 │   ├── benchmark_faiss_vector_store.py# FAISS IndexFlatIP vs NumPy dot product latency benchmark
 │   ├── evaluate_judge_agreement.py    # LLM-as-a-Judge agreement (--judge llama_guard/rule/mock)
+│   ├── run_phase.py                   # Unified research runner (Phases 1-9, --mock_inference, --all)
+│   ├── generate_plots.py              # Consolidated visualizer (Confusion matrix, ROC & stability curves)
 │   ├── generate_attack_variants.py    # Synthetic mutation generator (30 variants)
 │   ├── convert_single_to_multiturn.py # Converts single-turn benchmarks to multi-turn Crescendo
 │   └── run_full_pipeline.py           # Canonical end-to-end demo

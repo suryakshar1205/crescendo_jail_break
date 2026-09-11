@@ -46,10 +46,15 @@ def run_single_phase(phase: int, extra_args: List[str]) -> int:
     module_name = PHASE_MODULES[phase]
     cmd = [sys.executable, "-m", module_name]
 
-    if phase == 1 and "--experiment_id" not in extra_args:
+    # Filter flags not recognized by specific phases
+    phase_args = list(extra_args)
+    if phase in (7, 8, 9) and "--mock_inference" in phase_args:
+        phase_args.remove("--mock_inference")
+
+    if phase == 1 and "--experiment_id" not in phase_args:
         cmd.extend(["--experiment_id", "G0_baseline"])
 
-    cmd.extend(extra_args)
+    cmd.extend(phase_args)
 
     print("=" * 70)
     print(f"RUNNING RESEARCH MILESTONE -- PHASE {phase}")
