@@ -334,7 +334,7 @@
 
     // Check if the last turn was BLOCKED; if so, highlight interception and halt autoplay
     const lastTurn = state.history[state.history.length - 1];
-    if (lastTurn && lastTurn.decision === 'BLOCK') {
+    if (lastTurn && (lastTurn.decision === 'BLOCK' || lastTurn.decision === 'RESTRICT')) {
       stopAutoPlay();
       checkScenarioCompletion();
       return;
@@ -774,6 +774,9 @@
 
   function checkScenarioCompletion() {
     if (!state.selectedScenario) return;
+    // Guard against duplicate summary card rendering
+    if (el.messagesList.querySelector('.scenario-summary-card')) return;
+
     if (state.scenarioTurnIndex >= state.selectedScenario.turns.length) {
       const summaryCard = document.createElement('div');
       summaryCard.className = 'scenario-summary-card';
