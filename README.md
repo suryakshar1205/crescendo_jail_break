@@ -77,7 +77,7 @@ pip install -r requirements.txt
 python run_website.py
 # Server starts at http://localhost:8080/ and automatically launches your browser
 
-# 5. Run the Master Test Suite (All 32 tests certified 100% passing)
+# 5. Run the Master Test Suite (All 34 tests certified 100% passing)
 python tests/test_all.py
 
 # 6. Execute full scientific replication audit (58 attacks, 50 benign dialogues)
@@ -120,6 +120,8 @@ The web dashboard is engineered as an interactive **security research testbench*
 > 📋 **Live Testing Guide**: See [DEMO_TESTING_EXAMPLES.md](DEMO_TESTING_EXAMPLES.md) for 7 complete, copy-paste-ready test scenarios (unseen malware injection, SCADA sabotage, wire fraud, and 0% FPR controls) designed for live demonstration.
 
 ### REST API Surface
+
+> 📖 **Formal API Specification**: For complete request/response schemas, JSON parameter definitions, error codes, and copy-pasteable `curl` examples, see [`docs/api_specification.md`](docs/api_specification.md).
 
 | Method | Endpoint | Description | Payload / Response |
 |:---|:---|:---|:---|
@@ -248,6 +250,44 @@ To prevent oscillation around decision boundaries, the state machine implements 
 - **Elevation**: If $CRS_t \ge T_{\text{tier}}$, state immediately transitions to the higher restriction.
 - **De-escalation**: State drops back to a lower tier only if:
   $$CRS_t < T_{\text{tier}} - \delta$$
+
+### 5. Formal System Algorithm (Pseudocode)
+
+```text
+Algorithm 1: Stateful Multi-Signal Crescendo Defense Pipeline
+Input: Current Prompt P_t, Session ID s, Conversation History H_{t-1}, Previous Memory C_{t-1}
+Output: Decision D_t ∈ {ALLOW, WARN, RESTRICT, BLOCK}, Assistant Response R_t
+
+1:  Extract Harmfulness: H_t ← HarmfulnessAnalyzer(P_t)
+2:  Extract Intent Escalation: E_t ← IntentEscalationAnalyzer(H_{t-1}, P_t)
+3:  Extract Semantic Drift: S_t ← max(CosineDrift(P_t, P_1), FAISS_Search(P_t))
+4:  Extract Refusal Bypass: B_t ← RefusalBypassAnalyzer(P_t)
+5:  Compute Turn Risk: CRS_t ← 0.40·H_t + 0.30·E_t + 0.20·S_t + 0.10·B_t
+6:  Update Context Memory: C_t ← 0.80·C_{t-1} + 0.20·CRS_t
+7:  Compute Dynamic Threshold: τ_t ← clamp(0.825 - 0.10·D_t - 0.15·E_t - 0.05·L_t, [0.60, 0.85])
+8:  Compute Effective Risk: R_eff ← max(CRS_t, C_t)
+9:  Evaluate Hysteresis State:
+10:     if PriorState(s) == BLOCK and R_eff >= τ_t - 0.15 then
+11:         D_t ← BLOCK
+12:     else if R_eff >= τ_t then
+13:         D_t ← BLOCK
+14:     else if R_eff >= 0.60 then
+15:         D_t ← RESTRICT
+16:     else if R_eff >= 0.40 then
+17:         D_t ← WARN
+18:     else
+19:         D_t ← ALLOW
+20:     end if
+21: if D_t == BLOCK then
+22:     R_t ← "🛡️ DEFENSE ENGINE: TERMINAL REFUSAL"
+23: else if D_t == RESTRICT then
+24:     R_t ← InvokeTargetLLM(P_t, SystemConstraint="Explain defensive theory only; redact operational code")
+25: else
+26:     R_t ← InvokeTargetLLM(P_t)
+27: end if
+28: RecordSessionHistory(s, P_t, R_t, D_t, R_eff, τ_t)
+29: return (D_t, R_t)
+```
 
 ---
 
@@ -425,10 +465,11 @@ crescendo_jail_break/
 │   └── run_full_pipeline.py           # Canonical end-to-end demo
 │
 ├── tests/
-│   ├── test_all.py                    # SINGLE MASTER TEST ENTRYPOINT (All 32 tests certified)
+│   ├── test_all.py                    # SINGLE MASTER TEST ENTRYPOINT (All 34 tests certified)
 │   ├── test_crs_pipeline.py           # Canonical pipeline integration tests (6 tests)
 │   ├── test_crs_boundaries.py         # Exact decision threshold & clamping tests (11 tests)
 │   ├── test_faiss_vector_store.py     # FAISS engine, latency SLA & persistence tests (7 tests)
+│   ├── test_session_isolation.py      # Multi-session memory isolation & reset (2 tests)
 │   ├── test_adaptive_adversary.py     # Jittering & semantic smuggling evasion tests (2 tests)
 │   ├── test_web_api.py                # End-to-end REST API validation tests
 │   └── regression/
@@ -436,6 +477,7 @@ crescendo_jail_break/
 │       └── test_benign_conversations.py # Benign regression suite (1 test, 50 conversations)
 │
 ├── docs/                              # Project documentation
+│   ├── api_specification.md           # Formal REST API Specification & JSON Schemas
 │   ├── final_check_list.md            # 153/153 Requirements Adherence Checklist
 │   ├── research_plan.md               # Scientific research plan & hypotheses
 │   ├── memory_diagnostics.md          # System memory & Windows paging diagnostics
@@ -490,7 +532,7 @@ The framework supports two distinct execution paradigms:
 The framework features an automated test suite guaranteeing exact mathematical boundary adherence and component integrity:
 
 ```powershell
-# Run the Single Master Test Entrypoint (All 32 tests)
+# Run the Single Master Test Entrypoint (All 34 tests)
 python tests/test_all.py
 ```
 
@@ -498,6 +540,7 @@ python tests/test_all.py
 - `tests/test_crs_pipeline.py` (6 tests): End-to-end pipeline execution, decision actions, and explainability report validation.
 - `tests/test_crs_boundaries.py` (11 tests): Exact mathematical verification of decision thresholds (`ALLOW` $<0.40$, `WARN` $[0.40, 0.60)$, `RESTRICT` $[0.60, 0.75)$, `BLOCK` $\ge 0.75$), hysteresis margins, and signal weight clamping.
 - `tests/test_faiss_vector_store.py` (7 tests): FAISS index persistence, cosine normalization, search precision, and latency SLA verification ($\le 25\text{ ms}$).
+- `tests/test_session_isolation.py` (2 tests): Multi-session memory isolation and complete state reset verification.
 - `tests/test_adaptive_adversary.py` (2 tests): Robustness against homoglyph character jittering and semantic smuggling.
 - `tests/regression/test_known_attacks.py` (5 tests): Full regression audit over 58 attacks across all 5 benchmark corpora.
 - `tests/regression/test_benign_conversations.py` (1 test): Full regression audit over 50 benign dialogues confirming 0.00% FPR.
