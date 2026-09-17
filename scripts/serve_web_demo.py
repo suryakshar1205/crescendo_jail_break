@@ -351,6 +351,32 @@ class CrescendoHTTPRequestHandler(SimpleHTTPRequestHandler):
             self._send_json(200, {"status": "healthy", "config": config_info})
             return
 
+        # Root route: explicitly serve index.html with UTF-8 encoding
+        if path in ("/", ""):
+            index_path = os.path.join(PROJECT_ROOT, "web", "index.html")
+            try:
+                with open(index_path, "rb") as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(content)))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(content)
+                return
+            except Exception as e:
+                logger.error(f"Error serving index.html: {e}")
+
+        # If unknown sub-path is entered (e.g. /web, /dashboard), redirect to /
+        web_dir = os.path.join(PROJECT_ROOT, "web")
+        rel_path = path.lstrip("/").replace("/", os.sep)
+        target_file = os.path.join(web_dir, rel_path)
+        if not os.path.exists(target_file) and not path.startswith("/api/"):
+            self.send_response(302)
+            self.send_header("Location", "/")
+            self.end_headers()
+            return
+
         # Fallback to static file server from web/
         super().do_GET()
 

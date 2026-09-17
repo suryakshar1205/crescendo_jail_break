@@ -107,14 +107,20 @@ def main():
     print("  • Backend:  Auto-restarts server upon editing src/ or scripts/")
     print("=" * 70)
 
-    # Step 2: Delayed browser open
+    # Step 2: Intelligent browser launch (waits until server is listening)
     if not args.no_browser:
         import threading
-        def open_browser_delayed():
-            time.sleep(2.0)
-            print(f"[*] Opening {url} in your default browser...")
-            webbrowser.open(url)
-        threading.Thread(target=open_browser_delayed, daemon=True).start()
+        def open_browser_when_ready():
+            print(f"[*] Initializing neural defense pipeline & FAISS index... (waiting for port {args.port})")
+            for _ in range(60):
+                if is_port_in_use(args.port, args.host):
+                    time.sleep(0.3)
+                    print(f"[+] Server listening! Opening {url} in your default browser...")
+                    webbrowser.open(url)
+                    return
+                time.sleep(0.5)
+            print(f"[!] Warning: Server took longer than expected to bind port {args.port}.")
+        threading.Thread(target=open_browser_when_ready, daemon=True).start()
 
     # Step 3: Spawn child server
     server_proc = start_server_process(args.host, args.port)
