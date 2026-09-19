@@ -367,6 +367,24 @@ class CrescendoHTTPRequestHandler(SimpleHTTPRequestHandler):
             except Exception as e:
                 logger.error(f"Error serving index.html: {e}")
 
+        # Serve results/ and plots/ directory assets
+        if path.startswith("/results/") or path.startswith("/plots/"):
+            target_file_path = os.path.join(PROJECT_ROOT, path.lstrip("/").replace("/", os.sep))
+            if os.path.exists(target_file_path) and os.path.isfile(target_file_path):
+                ct = "text/html; charset=utf-8" if target_file_path.endswith(".html") else ("image/png" if target_file_path.endswith(".png") else "application/octet-stream")
+                try:
+                    with open(target_file_path, "rb") as f:
+                        data = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-Type", ct)
+                    self.send_header("Content-Length", str(len(data)))
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(data)
+                    return
+                except Exception as e:
+                    logger.error(f"Error serving {path}: {e}")
+
         # If unknown sub-path is entered (e.g. /web, /dashboard), redirect to /
         web_dir = os.path.join(PROJECT_ROOT, "web")
         rel_path = path.lstrip("/").replace("/", os.sep)

@@ -1,0 +1,100 @@
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const rawMd = document.getElementById('raw-markdown-data').textContent;
+      const outputEl = document.getElementById('markdown-output');
+      const tocList = document.getElementById('dynamic-toc');
+      const progressBar = document.getElementById('reading-progress');
+      const tocFilter = document.getElementById('toc-filter');
+
+      // Configure marked parser
+      marked.setOptions({
+        gfm: true,
+        breaks: false,
+        headerIds: true,
+        mangle: false,
+        highlight: function(code, lang) {
+          if (lang && hljs.getLanguage(lang)) {
+            try {
+              return hljs.highlight(code, { language: lang }).value;
+            } catch (__) {}
+          }
+          return hljs.highlightAuto(code).value;
+        }
+      });
+
+      // Normalize relative image paths to work from results/ and web/
+      let processedMd = rawMd;
+      if (window.location.protocol === 'file:') {
+        if (window.location.pathname.includes('/web/')) {
+          processedMd = processedMd.replace(/!\[(.*?)\]\(plots\/(.*?)\)/g, '![$1](../results/plots/$2)');
+        }
+      }
+
+      // Parse & Sanitize Markdown
+      const htmlContent = marked.parse(processedMd);
+      outputEl.innerHTML = DOMPurify.sanitize(htmlContent, {
+        ADD_TAGS: ['code', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+        ADD_ATTR: ['target', 'id', 'class']
+      });
+
+      // Typeset MathJax equations
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([outputEl]).catch((err) => console.log('MathJax error:', err));
+      }
+
+      // Generate Dynamic Table of Contents
+      const headings = outputEl.querySelectorAll('h2, h3');
+      headings.forEach((h, index) => {
+        const id = h.id || `section-${index}`;
+        h.id = id;
+
+        const li = document.createElement('li');
+        li.className = h.tagName.toLowerCase() === 'h3' ? 'toc-item toc-subitem' : 'toc-item';
+        
+        const a = document.createElement('a');
+        a.href = `#${id}`;
+        a.textContent = h.textContent.replace(/^[\d\.\s]+/, '');
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // TOC Search Filter
+      tocFilter.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const items = tocList.querySelectorAll('.toc-item');
+        items.forEach((item) => {
+          const text = item.textContent.toLowerCase();
+          item.style.display = text.includes(query) ? 'block' : 'none';
+        });
+      });
+
+      // Reading Progress Bar & Active Section Highlight
+      window.addEventListener('scroll', () => {
+        const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = (window.scrollY / totalHeight) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        let currentActive = null;
+        headings.forEach((h) => {
+          const rect = h.getBoundingClientRect();
+          if (rect.top <= 120) {
+            currentActive = h.id;
+          }
+        });
+
+        const tocLinks = tocList.querySelectorAll('.toc-item');
+        tocLinks.forEach((li) => {
+          const a = li.querySelector('a');
+          if (a && a.getAttribute('href') === `#${currentActive}`) {
+            li.classList.add('active');
+          } else {
+            li.classList.remove('active');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
