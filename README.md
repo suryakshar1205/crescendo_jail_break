@@ -12,11 +12,14 @@
 
 > **Research Milestone — Crescendo Adversarial Robustness Project**  
 > An inference-time, stateful multi-turn jailbreak defense framework that protects Large Language Models (evaluated on `meta-llama/Llama-3.2-3B-Instruct`) against Crescendo conversational exploits. The framework achieves **0.00% Attack Success Rate (ASR)**, **0.00% False Positive Rate (FPR)**, and **100.00% Defense Detection Rate (DDR)** across 58 multi-turn attacks from 5 distinct benchmark corpora.
+>
+> 📊 **Exclusive Master Results Dossier**: For the complete, verified scientific results report with phase-by-phase empirical metrics (Phases 1–9), comparative baselines, progressive ablation, and 30 embedded analytical plots, see [`results/final_verified_results_dossier.md`](results/final_verified_results_dossier.md).
 
 ---
 
 ## Table of Contents
 
+- [📊 Master Results & Empirical Findings Dossier (Exclusive Results Report)](results/final_verified_results_dossier.md)
 - [Executive Summary](#executive-summary)
 - [Quick Start](#quick-start)
 - [🌐 Interactive Web Testbench & Visual Dashboard](#-interactive-web-testbench--visual-dashboard)
@@ -490,8 +493,12 @@ crescendo_jail_break/
 │   └── phase5/faiss_indexing_report.md # Detailed FAISS vector indexing architecture report
 │
 └── results/
+    ├── final_verified_results_dossier.md # Master Verified Results & Scientific Audit Dossier
+    ├── plots/                         # 30 high-resolution analytical distribution and curve plots
     └── json/
         ├── phase_b_verification_audit.json # Verified 0% ASR, 0% FPR, 100% DDR audit
+        ├── baseline_comparison.json        # 5-baseline evaluation metrics
+        ├── progressive_ablation_study.json # 7-tier additive ablation results
         ├── final_ablation_study.json       # Component contribution metrics
         ├── faiss_benchmark_results.json    # Vector store latency scaling results
         └── lambda_sensitivity_sweep.json   # Memory decay sensitivity data
