@@ -200,7 +200,9 @@
       const res = await fetch('/api/status');
       const data = await res.json();
       if (data.status === 'healthy') {
-        el.systemStatusText.textContent = 'PRD Defense Active';
+        if (el.systemStatusText) {
+          el.systemStatusText.innerHTML = `PRD Active (&lambda;=${data.config.memory_decay}, T<sub>0</sub>=${data.config.restrict_threshold})`;
+        }
       }
     } catch (err) {
       el.systemStatusText.textContent = 'Server Offline';

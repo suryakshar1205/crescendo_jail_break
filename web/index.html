@@ -27,10 +27,6 @@
       <div class="header-center"></div>
 
       <div class="header-right">
-        <div class="status-pill status-healthy" id="systemStatusPill">
-          <span class="status-dot"></span>
-          <span id="systemStatusText">PRD Pipeline Active</span>
-        </div>
         <a href="/results_dossier.html" target="_blank" class="btn btn-secondary btn-sm" title="Open Master Verified Results Dossier (HTML)">
           <span class="btn-icon">📊</span> Results Dossier
         </a>
@@ -350,7 +346,13 @@
         <div class="modal-title-group">
           <span class="modal-icon">🛡️</span>
           <div>
-            <h3 class="modal-title">Crescendo PRD Defense — System Architecture Guide</h3>
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <h3 class="modal-title" style="margin: 0;">Crescendo PRD Defense — System Architecture Guide</h3>
+              <div class="status-pill status-healthy" id="systemStatusPill">
+                <span class="status-dot"></span>
+                <span id="systemStatusText">PRD Active (&lambda;=0.8, T<sub>0</sub>=0.75)</span>
+              </div>
+            </div>
             <p class="modal-subtitle">Full-Stack Multi-Turn Jailbreak Interception Framework</p>
           </div>
         </div>
