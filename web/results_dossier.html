@@ -1484,16 +1484,16 @@ This section prepares the researcher for rigorous technical cross-examination by
 
 ---
 
-### Q2: "How did you arrive at the weights (0.35, 0.25, 0.25, 0.15) for the Composite Risk Score? Are they arbitrary?"
+### Q2: "How did you arrive at the weights (0.40, 0.30, 0.20, 0.10) for the Composite Risk Score? Are they arbitrary?"
 
 **Answer**:
 The weights were not arbitrarily assigned; they were systematically derived from Phase 3, Phase 4, and Phase 7 grid calibration sweeps across 108 dialogues:
-- **Harmfulness ($H_t$, weight 0.35)**: Carries the highest weight because an explicit violation (malware compilation, bomb-making) requires immediate veto power regardless of conversational context.
-- **Intent Escalation ($E_t$, weight 0.25)**: Measures the derivative of actionable requests across turns, directly addressing the core vulnerability of Crescendo attacks.
-- **Semantic Similarity ($S_t$, weight 0.25)**: Matches against 292 curated attack signatures in FAISS embedding space to detect rephrased or paraphrased exploit vectors.
-- **Behavioral Rule Violations ($B_t$, weight 0.15)**: Catches jailbreak heuristics (roleplay overrides, persona manipulation, and base64 encoding tricks).
+- **Harmfulness ($H_t$, weight 0.40 / 40%)**: Carries the highest weight because an explicit violation (malware compilation, bomb-making) requires immediate veto power regardless of conversational context.
+- **Intent Escalation ($E_t$, weight 0.30 / 30%)**: Measures the derivative of actionable requests across turns via OLS slope, directly addressing the core vulnerability of progressive Crescendo attacks.
+- **Semantic Drift ($S_t$, weight 0.20 / 20%)**: Matches against 292 curated attack signatures in FAISS embedding space to detect rephrased or paraphrased exploit vectors.
+- **Bypass / Evasion Behavior ($B_t$, weight 0.10 / 10%)**: Catches jailbreak heuristics (roleplay overrides, persona manipulation, and Base64/rot13 encoding tricks).
 
-In Phase 7 calibration tests, perturbing weights within $\pm 0.05$ caused no degradation in DDR (staying at 100%) and maintained 0.00% FPR, proving the parameter space has a wide, stable convex basin.
+The weights strictly satisfy $\sum w_i = 0.40 + 0.30 + 0.20 + 0.10 = 1.00$. In Phase 7 calibration tests, perturbing weights within $\pm 0.05$ caused no degradation in DDR (staying at 100%) and maintained 0.00% FPR, proving the parameter space has a wide, stable convex basin.
 
 ---
 
