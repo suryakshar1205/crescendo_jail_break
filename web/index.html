@@ -24,15 +24,7 @@
         </div>
       </div>
 
-      <div class="header-center">
-        <div class="formula-banner">
-          <span class="formula-label">CANONICAL RISK:</span>
-          <span class="formula-code">CRS<sub>t</sub> = 0.40H + 0.30E + 0.20S + 0.10B</span>
-          <span class="formula-sep">|</span>
-          <span class="formula-label">MEMORY:</span>
-          <span class="formula-code">C<sub>t</sub> = 0.80·C<sub>t-1</sub> + 0.20·CRS<sub>t</sub></span>
-        </div>
-      </div>
+      <div class="header-center"></div>
 
       <div class="header-right">
         <div class="status-pill status-healthy" id="systemStatusPill">
@@ -390,23 +382,39 @@
         </div>
 
         <div class="guide-section">
-          <h4>2. Core Mathematical Formulations</h4>
-          <div class="guide-formulas">
+          <h4>2. Core Mathematical Formulations & Active Parameters</h4>
+          <div class="guide-banner-card">
+            <div class="guide-banner-header">
+              <span class="guide-banner-title">⚡ CANONICAL RISK & STATEFUL MEMORY</span>
+              <span class="guide-pill">PRD Active (&lambda;=0.80, T₀=0.75, &delta;=0.15)</span>
+            </div>
+            <div class="guide-banner-body">
+              <div class="guide-formula-row">
+                <span class="formula-label">CANONICAL RISK:</span>
+                <span class="formula-code">CRS<sub>t</sub> = 0.40·H<sub>t</sub> + 0.30·E<sub>t</sub> + 0.20·S<sub>t</sub> + 0.10·B<sub>t</sub></span>
+              </div>
+              <div class="guide-formula-row">
+                <span class="formula-label">CONTEXTUAL MEMORY:</span>
+                <span class="formula-code">C<sub>t</sub> = 0.80·C<sub>t-1</sub> + 0.20·CRS<sub>t</sub> &nbsp;&nbsp;(Half-Life: t<sub>1/2</sub> = 3.11 turns)</span>
+              </div>
+            </div>
+          </div>
+          <div class="guide-formulas" style="margin-top: 10px;">
             <div class="formula-item">
-              <span class="formula-head">Composite Risk:</span>
-              <code>CRS<sub>t</sub> = 0.40·H<sub>t</sub> + 0.30·E<sub>t</sub> + 0.20·S<sub>t</sub> + 0.10·B<sub>t</sub></code>
+              <span class="formula-head">Harmfulness & Escalation (H, E):</span>
+              <code>H<sub>t</sub>: Unsafe keywords &middot; E<sub>t</sub>: Actionability slope</code>
             </div>
             <div class="formula-item">
-              <span class="formula-head">Contextual Memory:</span>
-              <code>C<sub>t</sub> = 0.80·C<sub>t-1</sub> + 0.20·CRS<sub>t</sub></code>
+              <span class="formula-head">Semantic & Bypass (S, B):</span>
+              <code>S<sub>t</sub>: FAISS cosine drift &middot; B<sub>t</sub>: Jailbreak heuristics</code>
             </div>
             <div class="formula-item">
-              <span class="formula-head">Dynamic Threshold:</span>
+              <span class="formula-head">Dynamic Adaptive Threshold:</span>
               <code>&tau;<sub>t</sub> = 0.825 - 0.10·D<sub>t</sub> - 0.15·E<sub>t</sub> - 0.05·L<sub>t</sub></code>
             </div>
             <div class="formula-item">
-              <span class="formula-head">Hysteresis Stability:</span>
-              <code>Release Margin &delta; = 0.15 (Prevents oscillating downgrade evasion)</code>
+              <span class="formula-head">Hysteresis Anti-Oscillation:</span>
+              <code>Release Margin &delta; = 0.15 (De-escalation requires R<sub>eff</sub> &lt; &tau;<sub>t</sub> - 0.15)</code>
             </div>
           </div>
         </div>
