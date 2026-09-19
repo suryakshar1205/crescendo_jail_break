@@ -404,22 +404,93 @@
               </div>
             </div>
           </div>
-          <div class="guide-formulas" style="margin-top: 10px;">
-            <div class="formula-item">
-              <span class="formula-head">Harmfulness & Escalation (H, E):</span>
-              <code>H<sub>t</sub>: Unsafe keywords &middot; E<sub>t</sub>: Actionability slope</code>
+          <div class="guide-formulas" style="margin-top: 12px;">
+            <!-- Card 1: Harmfulness & Escalation -->
+            <div class="formula-card card-danger">
+              <div class="formula-card-top">
+                <span class="formula-card-title">🚨 HARMFULNESS & ESCALATION (H, E)</span>
+                <span class="formula-weight-badge danger">w<sub>H</sub>=0.40 &middot; w<sub>E</sub>=0.30</span>
+              </div>
+              <div class="formula-card-math">
+                H<sub>t</sub> = min(1.0, Count<sub>kw</sub> / 3.0)&times;0.6 + Actionability&times;0.4
+                <span class="math-secondary">E<sub>t</sub> = clip((Slope<sub>OLS</sub> + 0.15) / 0.40, 0.0, 1.0)</span>
+              </div>
+              <div class="formula-card-list">
+                <div class="param-row">
+                  <span class="param-var">H<sub>t</sub>:</span>
+                  <span class="param-desc"><strong>Instantaneous Harm</strong> &mdash; 14 high-severity regex safety domains (CBRN, automated exploit payloads, malware synthesis, credential theft).</span>
+                </div>
+                <div class="param-row">
+                  <span class="param-var">E<sub>t</sub>:</span>
+                  <span class="param-desc"><strong>Intent Escalation Slope</strong> &mdash; Ordinary Least Squares (OLS) linear regression &beta; over k=5 turn window; captures conceptual-to-operational transitions.</span>
+                </div>
+              </div>
             </div>
-            <div class="formula-item">
-              <span class="formula-head">Semantic & Bypass (S, B):</span>
-              <code>S<sub>t</sub>: FAISS cosine drift &middot; B<sub>t</sub>: Jailbreak heuristics</code>
+
+            <!-- Card 2: Semantic & Bypass -->
+            <div class="formula-card card-cyan">
+              <div class="formula-card-top">
+                <span class="formula-card-title">🧬 SEMANTIC & BYPASS (S, B)</span>
+                <span class="formula-weight-badge">w<sub>S</sub>=0.20 &middot; w<sub>B</sub>=0.10</span>
+              </div>
+              <div class="formula-card-math">
+                S<sub>t</sub> = 1.0 - max<sub>i&isin;Anchors</sub> (v<sub>t</sub> &middot; v<sub>i</sub>) &nbsp;&nbsp;[FAISS FlatIP d=384]
+                <span class="math-secondary">B<sub>t</sub> = &sum;<sub>j=1..6</sub> w<sub>j</sub> &middot; &Iopf;(Heuristic<sub>j</sub>) &nbsp;&nbsp;[6 Evasion Classes]</span>
+              </div>
+              <div class="formula-card-list">
+                <div class="param-row">
+                  <span class="param-var">S<sub>t</sub>:</span>
+                  <span class="param-desc"><strong>Cosine Drift from Safe Anchors</strong> &mdash; Dense embedding distance using all-MiniLM-L6-v2; flags semantic smuggling across turns.</span>
+                </div>
+                <div class="param-row">
+                  <span class="param-var">B<sub>t</sub>:</span>
+                  <span class="param-desc"><strong>Adversarial Bypass Heuristics</strong> &mdash; DAN/persona adoption, Base64/rot13 ciphers, character homoglyphs, instruction override prompts.</span>
+                </div>
+              </div>
             </div>
-            <div class="formula-item">
-              <span class="formula-head">Dynamic Adaptive Threshold:</span>
-              <code>&tau;<sub>t</sub> = 0.825 - 0.10·D<sub>t</sub> - 0.15·E<sub>t</sub> - 0.05·L<sub>t</sub></code>
+
+            <!-- Card 3: Dynamic Threshold -->
+            <div class="formula-card card-emerald">
+              <div class="formula-card-top">
+                <span class="formula-card-title">🎯 DYNAMIC ADAPTIVE THRESHOLD (&tau;<sub>t</sub>)</span>
+                <span class="formula-weight-badge emerald">Base &tau;₀ = 0.825 &middot; Bounds [0.60, 0.85]</span>
+              </div>
+              <div class="formula-card-math">
+                &tau;<sub>t</sub> = clip(0.825 - 0.10&middot;D<sub>t</sub> - 0.15&middot;E<sub>t</sub> - 0.05&middot;L<sub>t</sub>, 0.60, 0.85)
+                <span class="math-secondary">ALLOW (&lt;0.40) &middot; WARN (&lt;0.65) &middot; RESTRICT (&lt;&tau;<sub>t</sub>) &middot; BLOCK (&ge;&tau;<sub>t</sub>)</span>
+              </div>
+              <div class="formula-card-list">
+                <div class="param-row">
+                  <span class="param-var">D<sub>t</sub>:</span>
+                  <span class="param-desc"><strong>Anchor Drift</strong> = min(1.0, ||v<sub>t</sub> - v₁||₂ / &radic;2) &mdash; penalizes departure from initial benign anchor.</span>
+                </div>
+                <div class="param-row">
+                  <span class="param-var">L<sub>t</sub>:</span>
+                  <span class="param-desc"><strong>Length Penalty</strong> = min(1.0, t / 10) &mdash; progressively tightens defense boundary against long-horizon attrition.</span>
+                </div>
+              </div>
             </div>
-            <div class="formula-item">
-              <span class="formula-head">Hysteresis Anti-Oscillation:</span>
-              <code>Release Margin &delta; = 0.15 (De-escalation requires R<sub>eff</sub> &lt; &tau;<sub>t</sub> - 0.15)</code>
+
+            <!-- Card 4: Hysteresis Anti-Oscillation -->
+            <div class="formula-card card-purple">
+              <div class="formula-card-top">
+                <span class="formula-card-title">🛡️ HYSTERESIS & STATE MACHINE (&delta;)</span>
+                <span class="formula-weight-badge purple">Release Margin &delta; = 0.15 &middot; k<sub>cool</sub> &ge; 2</span>
+              </div>
+              <div class="formula-card-math">
+                &tau;<sub>release</sub> = &tau;<sub>t</sub> - 0.15 &nbsp;&nbsp;(De-escalation requires R<sub>eff</sub> &lt; &tau;<sub>release</sub>)
+                <span class="math-secondary">Persistent Cooldown: &ge; 2 consecutive turns below R<sub>eff</sub> &lt; 0.35</span>
+              </div>
+              <div class="formula-card-list">
+                <div class="param-row">
+                  <span class="param-var">State:</span>
+                  <span class="param-desc"><strong>4-Tier State Machine Latch</strong> &mdash; Once in RESTRICT or BLOCK, states are latched to prevent single-turn flip-flop attacks.</span>
+                </div>
+                <div class="param-row">
+                  <span class="param-var">&delta;:</span>
+                  <span class="param-desc"><strong>Anti-Oscillation Margin</strong> &mdash; Eliminates sawtooth evasion where attackers interleave malicious and benign prompts.</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

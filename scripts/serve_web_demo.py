@@ -367,9 +367,36 @@ class CrescendoHTTPRequestHandler(SimpleHTTPRequestHandler):
             except Exception as e:
                 logger.error(f"Error serving index.html: {e}")
 
+        # Universal image handler for all analytical plots (.png)
+        if path.endswith(".png"):
+            filename = os.path.basename(path)
+            for candidate_dir in [
+                os.path.join(PROJECT_ROOT, "results", "plots"),
+                os.path.join(PROJECT_ROOT, "web", "plots"),
+                os.path.join(PROJECT_ROOT, "plots")
+            ]:
+                candidate = os.path.join(candidate_dir, filename)
+                if os.path.exists(candidate) and os.path.isfile(candidate):
+                    try:
+                        with open(candidate, "rb") as f:
+                            data = f.read()
+                        self.send_response(200)
+                        self.send_header("Content-Type", "image/png")
+                        self.send_header("Content-Length", str(len(data)))
+                        self.send_header("Cache-Control", "public, max-age=3600")
+                        self.send_header("Access-Control-Allow-Origin", "*")
+                        self.end_headers()
+                        self.wfile.write(data)
+                        return
+                    except Exception as e:
+                        logger.error(f"Error serving image {filename}: {e}")
+
         # Serve results/ and plots/ directory assets
         if path.startswith("/results/") or path.startswith("/plots/"):
-            target_file_path = os.path.join(PROJECT_ROOT, path.lstrip("/").replace("/", os.sep))
+            if path.startswith("/plots/"):
+                target_file_path = os.path.join(PROJECT_ROOT, "results", "plots", path[len("/plots/"):].replace("/", os.sep))
+            else:
+                target_file_path = os.path.join(PROJECT_ROOT, path.lstrip("/").replace("/", os.sep))
             if os.path.exists(target_file_path) and os.path.isfile(target_file_path):
                 ct = "text/html; charset=utf-8" if target_file_path.endswith(".html") else ("image/png" if target_file_path.endswith(".png") else "application/octet-stream")
                 try:

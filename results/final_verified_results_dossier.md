@@ -557,37 +557,37 @@ The table below records the empirical layer-by-layer latency breakdown across 63
 
 All 30 analytical plots generated during evaluation are cataloged below with direct references to `results/plots/`:
 
-| Plot Filename | Research Phase | Scientific Phenomenon Illustrated |
-|:---|:---:|:---|
-| [`anchor_drift_distribution.png`](plots/anchor_drift_distribution.png) | Phase 2 | Separation of Anchor Drift ($D_{\text{anchor}}$) between attacks and benign chats. |
-| [`threshold_vs_asr.png`](plots/threshold_vs_asr.png) | Phase 2 | Attack Success Rate as a function of static decision threshold. |
-| [`threshold_vs_detection_rate.png`](plots/threshold_vs_detection_rate.png) | Phase 2 | Detection Rate scaling across threshold values in Phase 2. |
-| [`threshold_vs_fpr.png`](plots/threshold_vs_fpr.png) | Phase 2 | False Positive Rate boundary curve in Phase 2. |
-| [`semantic_vs_rule_score_distribution.png`](plots/semantic_vs_rule_score_distribution.png) | Phase 3 | 2D scatter of Semantic Drift vs Rule Score showing clean quadrant separation. |
-| [`threshold_vs_asr_p3.png`](plots/threshold_vs_asr_p3.png) | Phase 3 | ASR drop across threshold sweeps under hybrid semantic-rule fusion. |
-| [`threshold_vs_detection_rate_p3.png`](plots/threshold_vs_detection_rate_p3.png) | Phase 3 | DDR progression across thresholds in Phase 3. |
-| [`threshold_vs_fpr_p3.png`](plots/threshold_vs_fpr_p3.png) | Phase 3 | FPR stability curve under hybrid fusion. |
-| [`latency_vs_threshold_p3.png`](plots/latency_vs_threshold_p3.png) | Phase 3 | Latency stability across decision thresholds in Phase 3. |
-| [`contextual_risk_distribution_p4.png`](plots/contextual_risk_distribution_p4.png) | Phase 4 | Contextual memory accumulation ($C_t$) density distribution. |
-| [`phase3_vs_contextual_risk_p4.png`](plots/phase3_vs_contextual_risk_p4.png) | Phase 4 | Direct comparison of turn risk without memory vs with exponential memory. |
-| [`lambda_sensitivity_curve.png`](plots/lambda_sensitivity_curve.png) | Phase 4 | Parameter sensitivity sweep identifying $\lambda = 0.80$ as the Pareto optimum. |
-| [`trend_score_distribution_p4.png`](plots/trend_score_distribution_p4.png) | Phase 4 | OLS linear regression slope distribution across conversational turns. |
-| [`persistence_memory_distribution_p4.png`](plots/persistence_memory_distribution_p4.png) | Phase 4 | Proportion of suspicious turns within the 5-turn sliding window. |
-| [`threshold_vs_asr_p4.png`](plots/threshold_vs_asr_p4.png) | Phase 4 | ASR achieving 0.00% under contextual memory accumulation. |
-| [`threshold_vs_detection_rate_p4.png`](plots/threshold_vs_detection_rate_p4.png) | Phase 4 | 100% DDR plateau across decision thresholds in Phase 4. |
-| [`threshold_vs_fpr_p4.png`](plots/threshold_vs_fpr_p4.png) | Phase 4 | Zero false positive rate curve in Phase 4. |
-| [`latency_vs_threshold_p4.png`](plots/latency_vs_threshold_p4.png) | Phase 4 | Sub-millisecond defense execution latency across Phase 4 sweeps. |
-| [`seen_vs_unseen_robustness.png`](plots/seen_vs_unseen_robustness.png) | Phase 5 | Generalization performance comparing training attack vectors vs holdouts. |
-| [`holdout_asr_vs_threshold.png`](plots/holdout_asr_vs_threshold.png) | Phase 5 | Zero ASR verification on unseen holdout attack corpora. |
-| [`threshold_stability_curve.png`](plots/threshold_stability_curve.png) | Phase 5 | Threshold variance and numerical stability across FAISS scale testing. |
-| [`confusion_matrix.png`](plots/confusion_matrix.png) | Phase 6 | Multi-judge ground truth agreement matrix ($TP=147, TN=23, FP=0, FN=0$). |
-| [`failure_distribution.png`](plots/failure_distribution.png) | Phase 6 | Zero-failure validation chart across evaluation categories. |
-| [`benign_vs_attack_risk_distribution.png`](plots/benign_vs_attack_risk_distribution.png) | Phase 7 | Bimodal risk distribution showing distinct separation between attacks and benign chats. |
-| [`risk_score_distribution.png`](plots/risk_score_distribution.png) | Phase 7 | Normalized Composite Risk Score ($CRS$) histogram across all turns. |
-| [`bypass_interception_distribution.png`](plots/bypass_interception_distribution.png) | Phase 8 | Successful interception counts across all 6 adversarial bypass categories. |
-| [`detection_robustness_distribution.png`](plots/detection_robustness_distribution.png) | Phase 8 | Empirical robustness against character homoglyphs and turn jittering. |
-| [`latency_comparison_across_phases.png`](plots/latency_comparison_across_phases.png) | Phase 9 | Latency progression from Phase 1 to Phase 9 within the 25ms SLA. |
-| [`component_ablation_comparison.png`](plots/component_ablation_comparison.png) | Summary | Macro comparison of all 5 baseline architectures and 7 ablation tiers. |
+| Visual Plot Preview | Filename & Research Phase | Scientific Phenomenon Illustrated |
+|:---:|:---|:---|
+| ![Anchor Drift Distribution](plots/anchor_drift_distribution.png) | **[`anchor_drift_distribution.png`](plots/anchor_drift_distribution.png)**<br>`Phase 2: Semantic Drift` | Separation of Anchor Drift ($D_{\text{anchor}}$) between attacks (0.65–0.95) and benign controls (0.10–0.35). |
+| ![Threshold vs ASR](plots/threshold_vs_asr.png) | **[`threshold_vs_asr.png`](plots/threshold_vs_asr.png)**<br>`Phase 2: Semantic Drift` | Attack Success Rate as a function of static decision threshold (dropping to 0% at $\tau \le 0.70$). |
+| ![Threshold vs Detection Rate](plots/threshold_vs_detection_rate.png) | **[`threshold_vs_detection_rate.png`](plots/threshold_vs_detection_rate.png)**<br>`Phase 2: Semantic Drift` | Detection Rate scaling across threshold values in Phase 2, reaching 100% at strict bounds. |
+| ![Threshold vs FPR](plots/threshold_vs_fpr.png) | **[`threshold_vs_fpr.png`](plots/threshold_vs_fpr.png)**<br>`Phase 2: Semantic Drift` | False Positive Rate boundary curve identifying FPR=0% safe operational regime ($\tau \ge 0.75$). |
+| ![Semantic vs Rule Score Distribution](plots/semantic_vs_rule_score_distribution.png) | **[`semantic_vs_rule_score_distribution.png`](plots/semantic_vs_rule_score_distribution.png)**<br>`Phase 3: Hybrid Fusion` | 2D scatter of Semantic Drift vs Rule Score showing distinct multi-quadrant separation of attacks vs benign. |
+| ![Phase 3 ASR](plots/threshold_vs_asr_p3.png) | **[`threshold_vs_asr_p3.png`](plots/threshold_vs_asr_p3.png)**<br>`Phase 3: Hybrid Fusion` | ASR drop across threshold sweeps under hybrid semantic-rule fusion ($ASR=0.0\%$ at $\tau=0.75$). |
+| ![Phase 3 DDR](plots/threshold_vs_detection_rate_p3.png) | **[`threshold_vs_detection_rate_p3.png`](plots/threshold_vs_detection_rate_p3.png)**<br>`Phase 3: Hybrid Fusion` | Defense Detection Rate progression across thresholds achieving 100% detection coverage. |
+| ![Phase 3 FPR](plots/threshold_vs_fpr_p3.png) | **[`threshold_vs_fpr_p3.png`](plots/threshold_vs_fpr_p3.png)**<br>`Phase 3: Hybrid Fusion` | False Positive Rate stability curve verifying 0.00% false alarms across benign corpora. |
+| ![Phase 3 Latency](plots/latency_vs_threshold_p3.png) | **[`latency_vs_threshold_p3.png`](plots/latency_vs_threshold_p3.png)**<br>`Phase 3: Hybrid Fusion` | Sub-millisecond defense execution latency ($0.64\text{ ms}$) across Phase 3 threshold sweeps. |
+| ![Contextual Risk Distribution](plots/contextual_risk_distribution_p4.png) | **[`contextual_risk_distribution_p4.png`](plots/contextual_risk_distribution_p4.png)**<br>`Phase 4: Adaptive Memory` | Contextual memory accumulation ($C_t$) density distribution confirming bimodal separation. |
+| ![Phase 3 vs P4 Risk](plots/phase3_vs_contextual_risk_p4.png) | **[`phase3_vs_contextual_risk_p4.png`](plots/phase3_vs_contextual_risk_p4.png)**<br>`Phase 4: Adaptive Memory` | Direct comparison of turn risk without memory vs exponential memory ($C_t$), revealing early interception. |
+| ![Lambda Sensitivity Curve](plots/lambda_sensitivity_curve.png) | **[`lambda_sensitivity_curve.png`](plots/lambda_sensitivity_curve.png)**<br>`Phase 4: Adaptive Memory` | Parameter sensitivity sweep identifying decay parameter $\lambda = 0.80$ ($t_{1/2} = 3.11\text{ turns}$) as Pareto optimum. |
+| ![Trend Score Distribution](plots/trend_score_distribution_p4.png) | **[`trend_score_distribution_p4.png`](plots/trend_score_distribution_p4.png)**<br>`Phase 4: Adaptive Memory` | OLS linear regression slope distribution across conversational turns capturing escalation velocity. |
+| ![Persistence Memory Distribution](plots/persistence_memory_distribution_p4.png) | **[`persistence_memory_distribution_p4.png`](plots/persistence_memory_distribution_p4.png)**<br>`Phase 4: Adaptive Memory` | Proportion of suspicious turns within the 5-turn sliding window, proving memory latching. |
+| ![Threshold vs ASR P4](plots/threshold_vs_asr_p4.png) | **[`threshold_vs_asr_p4.png`](plots/threshold_vs_asr_p4.png)**<br>`Phase 4: Adaptive Memory` | ASR achieving verified 0.00% under contextual memory accumulation across all test attacks. |
+| ![Threshold vs DDR P4](plots/threshold_vs_detection_rate_p4.png) | **[`threshold_vs_detection_rate_p4.png`](plots/threshold_vs_detection_rate_p4.png)**<br>`Phase 4: Adaptive Memory` | 100% Defense Detection Rate plateau across decision thresholds in Phase 4. |
+| ![Threshold vs FPR P4](plots/threshold_vs_fpr_p4.png) | **[`threshold_vs_fpr_p4.png`](plots/threshold_vs_fpr_p4.png)**<br>`Phase 4: Adaptive Memory` | Zero false positive rate curve in Phase 4 demonstrating preservation of benign usability. |
+| ![Phase 4 Latency](plots/latency_vs_threshold_p4.png) | **[`latency_vs_threshold_p4.png`](plots/latency_vs_threshold_p4.png)**<br>`Phase 4: Adaptive Memory` | Sub-millisecond defense execution latency ($0.81\text{ ms}$) across Phase 4 sweeps. |
+| ![Seen vs Unseen Robustness](plots/seen_vs_unseen_robustness.png) | **[`seen_vs_unseen_robustness.png`](plots/seen_vs_unseen_robustness.png)**<br>`Phase 5: Vector Indexing` | Generalization performance comparing training attack vectors vs unseen holdouts ($0.0\%\text{ degradation}$). |
+| ![Holdout ASR vs Threshold](plots/holdout_asr_vs_threshold.png) | **[`holdout_asr_vs_threshold.png`](plots/holdout_asr_vs_threshold.png)**<br>`Phase 5: Vector Indexing` | Zero ASR verification on unseen holdout attack corpora across the operational threshold band. |
+| ![Threshold Stability Curve](plots/threshold_stability_curve.png) | **[`threshold_stability_curve.png`](plots/threshold_stability_curve.png)**<br>`Phase 5: Vector Indexing` | Threshold variance and numerical stability across FAISS scale testing ($N=10^2$ to $N=10^4$). |
+| ![Confusion Matrix](plots/confusion_matrix.png) | **[`confusion_matrix.png`](plots/confusion_matrix.png)**<br>`Phase 6: Multi-Judge Safety` | Multi-judge ground truth agreement matrix ($TP=147, TN=23, FP=0, FN=0$, $\kappa=1.00$). |
+| ![Failure Distribution](plots/failure_distribution.png) | **[`failure_distribution.png`](plots/failure_distribution.png)**<br>`Phase 6: Multi-Judge Safety` | Zero-failure validation chart across evaluation categories (0 False Positives, 0 False Negatives). |
+| ![Benign vs Attack Risk Distribution](plots/benign_vs_attack_risk_distribution.png) | **[`benign_vs_attack_risk_distribution.png`](plots/benign_vs_attack_risk_distribution.png)**<br>`Phase 7: Dynamic Optimization` | Bimodal risk distribution showing clean, distinct separation between attacks and benign dialogues. |
+| ![Risk Score Distribution](plots/risk_score_distribution.png) | **[`risk_score_distribution.png`](plots/risk_score_distribution.png)**<br>`Phase 7: Dynamic Optimization` | Normalized Composite Risk Score ($CRS$) histogram across all 442 evaluated conversational turns. |
+| ![Bypass Interception Distribution](plots/bypass_interception_distribution.png) | **[`bypass_interception_distribution.png`](plots/bypass_interception_distribution.png)**<br>`Phase 8: Evasion Stress Testing` | Successful interception counts across all 6 adversarial bypass categories (100% intercepted). |
+| ![Detection Robustness Distribution](plots/detection_robustness_distribution.png) | **[`detection_robustness_distribution.png`](plots/detection_robustness_distribution.png)**<br>`Phase 8: Evasion Stress Testing` | Empirical robustness against character homoglyphs, leet-speak, and multi-turn jittering. |
+| ![Latency Comparison Across Phases](plots/latency_comparison_across_phases.png) | **[`latency_comparison_across_phases.png`](plots/latency_comparison_across_phases.png)**<br>`Phase 9: Cross-Model Generalization` | Latency progression from Phase 1 to Phase 9 proving adherence to the 25.0ms SLA budget. |
+| ![Component Ablation Comparison](plots/component_ablation_comparison.png) | **[`component_ablation_comparison.png`](plots/component_ablation_comparison.png)**<br>`Summary: Macro Benchmark` | Macro comparison of all 5 baseline architectures and 7 progressive ablation tiers. |
 
 ---
 

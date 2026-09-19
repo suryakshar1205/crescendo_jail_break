@@ -24,19 +24,42 @@
         }
       });
 
-      // Normalize relative image paths to work from results/ and web/
-      let processedMd = rawMd;
-      if (window.location.protocol === 'file:') {
-        if (window.location.pathname.includes('/web/')) {
-          processedMd = processedMd.replace(/!\[(.*?)\]\(plots\/(.*?)\)/g, '![$1](../results/plots/$2)');
-        }
-      }
-
       // Parse & Sanitize Markdown
-      const htmlContent = marked.parse(processedMd);
+      const htmlContent = marked.parse(rawMd);
       outputEl.innerHTML = DOMPurify.sanitize(htmlContent, {
-        ADD_TAGS: ['code', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
-        ADD_ATTR: ['target', 'id', 'class']
+        ADD_TAGS: ['img', 'code', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote', 'span', 'div', 'a'],
+        ADD_ATTR: ['src', 'alt', 'target', 'id', 'class', 'style', 'width', 'height', 'loading']
+      });
+
+      // Multi-candidate resilient fallback resolver for all plot images
+      outputEl.querySelectorAll('img').forEach(img => {
+        const rawSrc = img.getAttribute('src') || '';
+        const filename = rawSrc.split('/').pop().split('?')[0];
+
+        // Candidates in priority order based on protocol and folder
+        const candidates = [
+          'plots/' + filename,
+          './plots/' + filename,
+          '../results/plots/' + filename,
+          '/plots/' + filename,
+          '/results/plots/' + filename,
+          'results/plots/' + filename,
+          '../web/plots/' + filename,
+          'web/plots/' + filename
+        ];
+
+        img.onerror = function() {
+          let attempt = parseInt(this.dataset.retryAttempt || '0', 10);
+          if (attempt < candidates.length) {
+            this.dataset.retryAttempt = (attempt + 1).toString();
+            this.src = candidates[attempt];
+          }
+        };
+
+        // Lightbox trigger
+        img.addEventListener('click', () => {
+          openLightbox(img.src, img.alt || filename);
+        });
       });
 
       // Typeset MathJax equations
@@ -94,6 +117,32 @@
           }
         });
       });
+    });
+
+    // Lightbox modal controls
+    function openLightbox(src, caption) {
+      const modal = document.getElementById('image-lightbox');
+      const img = document.getElementById('lightbox-img');
+      const cap = document.getElementById('lightbox-caption');
+      if (modal && img && cap) {
+        img.src = src;
+        cap.textContent = caption;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeLightbox(e) {
+      if (e && e.target && e.target.id === 'lightbox-img') return;
+      const modal = document.getElementById('image-lightbox');
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
     });
   </script>
 </body>

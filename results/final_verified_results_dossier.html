@@ -424,21 +424,92 @@
       color: #cbd5e1;
     }
 
-    /* Images */
+    /* Images & Visual Plots */
     .content-area img {
       max-width: 100%;
       height: auto;
       border-radius: 8px;
       border: 1px solid var(--border-medium);
-      margin: 12px 0;
-      background: #000;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      margin: 14px 0;
+      background: #0d121d;
+      display: block;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
       cursor: zoom-in;
     }
 
     .content-area img:hover {
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
       border-color: var(--accent-cyan);
+      transform: scale(1.01);
+    }
+
+    /* Table embedded image styling */
+    .content-area td img {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 160px;
+      height: auto !important;
+      display: block !important;
+      margin: 6px auto !important;
+      border-radius: 6px;
+    }
+
+    /* Lightbox Modal */
+    #image-lightbox {
+      display: none;
+      position: fixed;
+      z-index: 99999;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(3, 7, 18, 0.92);
+      backdrop-filter: blur(8px);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      cursor: zoom-out;
+      padding: 24px;
+    }
+
+    #image-lightbox.active {
+      display: flex;
+    }
+
+    #image-lightbox img {
+      max-width: 92vw;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: 10px;
+      border: 1px solid var(--border-accent);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      cursor: default;
+    }
+
+    #image-lightbox .lightbox-caption {
+      color: var(--text-primary);
+      font-size: 14px;
+      margin-top: 14px;
+      font-weight: 500;
+      text-align: center;
+      max-width: 800px;
+    }
+
+    #image-lightbox .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 28px;
+      color: #fff;
+      font-size: 32px;
+      font-weight: 700;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    #image-lightbox .lightbox-close:hover {
+      opacity: 1;
+      color: var(--accent-cyan);
     }
 
     /* Print Optimization */
@@ -506,6 +577,13 @@
       </a>
     </div>
   </header>
+
+  <!-- Interactive Lightbox for High-Res Plot Inspection -->
+  <div id="image-lightbox" onclick="closeLightbox(event)">
+    <span class="lightbox-close" onclick="closeLightbox(event)">&times;</span>
+    <img id="lightbox-img" src="" alt="Zoomed Plot View">
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+  </div>
 
   <div class="dossier-layout">
     <!-- Sticky TOC Sidebar -->
@@ -1089,37 +1167,37 @@ The table below records the empirical layer-by-layer latency breakdown across 63
 
 All 30 analytical plots generated during evaluation are cataloged below with direct references to `results/plots/`:
 
-| Plot Filename | Research Phase | Scientific Phenomenon Illustrated |
-|:---|:---:|:---|
-| [`anchor_drift_distribution.png`](plots/anchor_drift_distribution.png) | Phase 2 | Separation of Anchor Drift ($D_{\text{anchor}}$) between attacks and benign chats. |
-| [`threshold_vs_asr.png`](plots/threshold_vs_asr.png) | Phase 2 | Attack Success Rate as a function of static decision threshold. |
-| [`threshold_vs_detection_rate.png`](plots/threshold_vs_detection_rate.png) | Phase 2 | Detection Rate scaling across threshold values in Phase 2. |
-| [`threshold_vs_fpr.png`](plots/threshold_vs_fpr.png) | Phase 2 | False Positive Rate boundary curve in Phase 2. |
-| [`semantic_vs_rule_score_distribution.png`](plots/semantic_vs_rule_score_distribution.png) | Phase 3 | 2D scatter of Semantic Drift vs Rule Score showing clean quadrant separation. |
-| [`threshold_vs_asr_p3.png`](plots/threshold_vs_asr_p3.png) | Phase 3 | ASR drop across threshold sweeps under hybrid semantic-rule fusion. |
-| [`threshold_vs_detection_rate_p3.png`](plots/threshold_vs_detection_rate_p3.png) | Phase 3 | DDR progression across thresholds in Phase 3. |
-| [`threshold_vs_fpr_p3.png`](plots/threshold_vs_fpr_p3.png) | Phase 3 | FPR stability curve under hybrid fusion. |
-| [`latency_vs_threshold_p3.png`](plots/latency_vs_threshold_p3.png) | Phase 3 | Latency stability across decision thresholds in Phase 3. |
-| [`contextual_risk_distribution_p4.png`](plots/contextual_risk_distribution_p4.png) | Phase 4 | Contextual memory accumulation ($C_t$) density distribution. |
-| [`phase3_vs_contextual_risk_p4.png`](plots/phase3_vs_contextual_risk_p4.png) | Phase 4 | Direct comparison of turn risk without memory vs with exponential memory. |
-| [`lambda_sensitivity_curve.png`](plots/lambda_sensitivity_curve.png) | Phase 4 | Parameter sensitivity sweep identifying $\lambda = 0.80$ as the Pareto optimum. |
-| [`trend_score_distribution_p4.png`](plots/trend_score_distribution_p4.png) | Phase 4 | OLS linear regression slope distribution across conversational turns. |
-| [`persistence_memory_distribution_p4.png`](plots/persistence_memory_distribution_p4.png) | Phase 4 | Proportion of suspicious turns within the 5-turn sliding window. |
-| [`threshold_vs_asr_p4.png`](plots/threshold_vs_asr_p4.png) | Phase 4 | ASR achieving 0.00% under contextual memory accumulation. |
-| [`threshold_vs_detection_rate_p4.png`](plots/threshold_vs_detection_rate_p4.png) | Phase 4 | 100% DDR plateau across decision thresholds in Phase 4. |
-| [`threshold_vs_fpr_p4.png`](plots/threshold_vs_fpr_p4.png) | Phase 4 | Zero false positive rate curve in Phase 4. |
-| [`latency_vs_threshold_p4.png`](plots/latency_vs_threshold_p4.png) | Phase 4 | Sub-millisecond defense execution latency across Phase 4 sweeps. |
-| [`seen_vs_unseen_robustness.png`](plots/seen_vs_unseen_robustness.png) | Phase 5 | Generalization performance comparing training attack vectors vs holdouts. |
-| [`holdout_asr_vs_threshold.png`](plots/holdout_asr_vs_threshold.png) | Phase 5 | Zero ASR verification on unseen holdout attack corpora. |
-| [`threshold_stability_curve.png`](plots/threshold_stability_curve.png) | Phase 5 | Threshold variance and numerical stability across FAISS scale testing. |
-| [`confusion_matrix.png`](plots/confusion_matrix.png) | Phase 6 | Multi-judge ground truth agreement matrix ($TP=147, TN=23, FP=0, FN=0$). |
-| [`failure_distribution.png`](plots/failure_distribution.png) | Phase 6 | Zero-failure validation chart across evaluation categories. |
-| [`benign_vs_attack_risk_distribution.png`](plots/benign_vs_attack_risk_distribution.png) | Phase 7 | Bimodal risk distribution showing distinct separation between attacks and benign chats. |
-| [`risk_score_distribution.png`](plots/risk_score_distribution.png) | Phase 7 | Normalized Composite Risk Score ($CRS$) histogram across all turns. |
-| [`bypass_interception_distribution.png`](plots/bypass_interception_distribution.png) | Phase 8 | Successful interception counts across all 6 adversarial bypass categories. |
-| [`detection_robustness_distribution.png`](plots/detection_robustness_distribution.png) | Phase 8 | Empirical robustness against character homoglyphs and turn jittering. |
-| [`latency_comparison_across_phases.png`](plots/latency_comparison_across_phases.png) | Phase 9 | Latency progression from Phase 1 to Phase 9 within the 25ms SLA. |
-| [`component_ablation_comparison.png`](plots/component_ablation_comparison.png) | Summary | Macro comparison of all 5 baseline architectures and 7 ablation tiers. |
+| Visual Plot Preview | Filename & Research Phase | Scientific Phenomenon Illustrated |
+|:---:|:---|:---|
+| ![Anchor Drift Distribution](plots/anchor_drift_distribution.png) | **[`anchor_drift_distribution.png`](plots/anchor_drift_distribution.png)**<br>`Phase 2: Semantic Drift` | Separation of Anchor Drift ($D_{\text{anchor}}$) between attacks (0.65–0.95) and benign controls (0.10–0.35). |
+| ![Threshold vs ASR](plots/threshold_vs_asr.png) | **[`threshold_vs_asr.png`](plots/threshold_vs_asr.png)**<br>`Phase 2: Semantic Drift` | Attack Success Rate as a function of static decision threshold (dropping to 0% at $\tau \le 0.70$). |
+| ![Threshold vs Detection Rate](plots/threshold_vs_detection_rate.png) | **[`threshold_vs_detection_rate.png`](plots/threshold_vs_detection_rate.png)**<br>`Phase 2: Semantic Drift` | Detection Rate scaling across threshold values in Phase 2, reaching 100% at strict bounds. |
+| ![Threshold vs FPR](plots/threshold_vs_fpr.png) | **[`threshold_vs_fpr.png`](plots/threshold_vs_fpr.png)**<br>`Phase 2: Semantic Drift` | False Positive Rate boundary curve identifying FPR=0% safe operational regime ($\tau \ge 0.75$). |
+| ![Semantic vs Rule Score Distribution](plots/semantic_vs_rule_score_distribution.png) | **[`semantic_vs_rule_score_distribution.png`](plots/semantic_vs_rule_score_distribution.png)**<br>`Phase 3: Hybrid Fusion` | 2D scatter of Semantic Drift vs Rule Score showing distinct multi-quadrant separation of attacks vs benign. |
+| ![Phase 3 ASR](plots/threshold_vs_asr_p3.png) | **[`threshold_vs_asr_p3.png`](plots/threshold_vs_asr_p3.png)**<br>`Phase 3: Hybrid Fusion` | ASR drop across threshold sweeps under hybrid semantic-rule fusion ($ASR=0.0\%$ at $\tau=0.75$). |
+| ![Phase 3 DDR](plots/threshold_vs_detection_rate_p3.png) | **[`threshold_vs_detection_rate_p3.png`](plots/threshold_vs_detection_rate_p3.png)**<br>`Phase 3: Hybrid Fusion` | Defense Detection Rate progression across thresholds achieving 100% detection coverage. |
+| ![Phase 3 FPR](plots/threshold_vs_fpr_p3.png) | **[`threshold_vs_fpr_p3.png`](plots/threshold_vs_fpr_p3.png)**<br>`Phase 3: Hybrid Fusion` | False Positive Rate stability curve verifying 0.00% false alarms across benign corpora. |
+| ![Phase 3 Latency](plots/latency_vs_threshold_p3.png) | **[`latency_vs_threshold_p3.png`](plots/latency_vs_threshold_p3.png)**<br>`Phase 3: Hybrid Fusion` | Sub-millisecond defense execution latency ($0.64\text{ ms}$) across Phase 3 threshold sweeps. |
+| ![Contextual Risk Distribution](plots/contextual_risk_distribution_p4.png) | **[`contextual_risk_distribution_p4.png`](plots/contextual_risk_distribution_p4.png)**<br>`Phase 4: Adaptive Memory` | Contextual memory accumulation ($C_t$) density distribution confirming bimodal separation. |
+| ![Phase 3 vs P4 Risk](plots/phase3_vs_contextual_risk_p4.png) | **[`phase3_vs_contextual_risk_p4.png`](plots/phase3_vs_contextual_risk_p4.png)**<br>`Phase 4: Adaptive Memory` | Direct comparison of turn risk without memory vs exponential memory ($C_t$), revealing early interception. |
+| ![Lambda Sensitivity Curve](plots/lambda_sensitivity_curve.png) | **[`lambda_sensitivity_curve.png`](plots/lambda_sensitivity_curve.png)**<br>`Phase 4: Adaptive Memory` | Parameter sensitivity sweep identifying decay parameter $\lambda = 0.80$ ($t_{1/2} = 3.11\text{ turns}$) as Pareto optimum. |
+| ![Trend Score Distribution](plots/trend_score_distribution_p4.png) | **[`trend_score_distribution_p4.png`](plots/trend_score_distribution_p4.png)**<br>`Phase 4: Adaptive Memory` | OLS linear regression slope distribution across conversational turns capturing escalation velocity. |
+| ![Persistence Memory Distribution](plots/persistence_memory_distribution_p4.png) | **[`persistence_memory_distribution_p4.png`](plots/persistence_memory_distribution_p4.png)**<br>`Phase 4: Adaptive Memory` | Proportion of suspicious turns within the 5-turn sliding window, proving memory latching. |
+| ![Threshold vs ASR P4](plots/threshold_vs_asr_p4.png) | **[`threshold_vs_asr_p4.png`](plots/threshold_vs_asr_p4.png)**<br>`Phase 4: Adaptive Memory` | ASR achieving verified 0.00% under contextual memory accumulation across all test attacks. |
+| ![Threshold vs DDR P4](plots/threshold_vs_detection_rate_p4.png) | **[`threshold_vs_detection_rate_p4.png`](plots/threshold_vs_detection_rate_p4.png)**<br>`Phase 4: Adaptive Memory` | 100% Defense Detection Rate plateau across decision thresholds in Phase 4. |
+| ![Threshold vs FPR P4](plots/threshold_vs_fpr_p4.png) | **[`threshold_vs_fpr_p4.png`](plots/threshold_vs_fpr_p4.png)**<br>`Phase 4: Adaptive Memory` | Zero false positive rate curve in Phase 4 demonstrating preservation of benign usability. |
+| ![Phase 4 Latency](plots/latency_vs_threshold_p4.png) | **[`latency_vs_threshold_p4.png`](plots/latency_vs_threshold_p4.png)**<br>`Phase 4: Adaptive Memory` | Sub-millisecond defense execution latency ($0.81\text{ ms}$) across Phase 4 sweeps. |
+| ![Seen vs Unseen Robustness](plots/seen_vs_unseen_robustness.png) | **[`seen_vs_unseen_robustness.png`](plots/seen_vs_unseen_robustness.png)**<br>`Phase 5: Vector Indexing` | Generalization performance comparing training attack vectors vs unseen holdouts ($0.0\%\text{ degradation}$). |
+| ![Holdout ASR vs Threshold](plots/holdout_asr_vs_threshold.png) | **[`holdout_asr_vs_threshold.png`](plots/holdout_asr_vs_threshold.png)**<br>`Phase 5: Vector Indexing` | Zero ASR verification on unseen holdout attack corpora across the operational threshold band. |
+| ![Threshold Stability Curve](plots/threshold_stability_curve.png) | **[`threshold_stability_curve.png`](plots/threshold_stability_curve.png)**<br>`Phase 5: Vector Indexing` | Threshold variance and numerical stability across FAISS scale testing ($N=10^2$ to $N=10^4$). |
+| ![Confusion Matrix](plots/confusion_matrix.png) | **[`confusion_matrix.png`](plots/confusion_matrix.png)**<br>`Phase 6: Multi-Judge Safety` | Multi-judge ground truth agreement matrix ($TP=147, TN=23, FP=0, FN=0$, $\kappa=1.00$). |
+| ![Failure Distribution](plots/failure_distribution.png) | **[`failure_distribution.png`](plots/failure_distribution.png)**<br>`Phase 6: Multi-Judge Safety` | Zero-failure validation chart across evaluation categories (0 False Positives, 0 False Negatives). |
+| ![Benign vs Attack Risk Distribution](plots/benign_vs_attack_risk_distribution.png) | **[`benign_vs_attack_risk_distribution.png`](plots/benign_vs_attack_risk_distribution.png)**<br>`Phase 7: Dynamic Optimization` | Bimodal risk distribution showing clean, distinct separation between attacks and benign dialogues. |
+| ![Risk Score Distribution](plots/risk_score_distribution.png) | **[`risk_score_distribution.png`](plots/risk_score_distribution.png)**<br>`Phase 7: Dynamic Optimization` | Normalized Composite Risk Score ($CRS$) histogram across all 442 evaluated conversational turns. |
+| ![Bypass Interception Distribution](plots/bypass_interception_distribution.png) | **[`bypass_interception_distribution.png`](plots/bypass_interception_distribution.png)**<br>`Phase 8: Evasion Stress Testing` | Successful interception counts across all 6 adversarial bypass categories (100% intercepted). |
+| ![Detection Robustness Distribution](plots/detection_robustness_distribution.png) | **[`detection_robustness_distribution.png`](plots/detection_robustness_distribution.png)**<br>`Phase 8: Evasion Stress Testing` | Empirical robustness against character homoglyphs, leet-speak, and multi-turn jittering. |
+| ![Latency Comparison Across Phases](plots/latency_comparison_across_phases.png) | **[`latency_comparison_across_phases.png`](plots/latency_comparison_across_phases.png)**<br>`Phase 9: Cross-Model Generalization` | Latency progression from Phase 1 to Phase 9 proving adherence to the 25.0ms SLA budget. |
+| ![Component Ablation Comparison](plots/component_ablation_comparison.png) | **[`component_ablation_comparison.png`](plots/component_ablation_comparison.png)**<br>`Summary: Macro Benchmark` | Macro comparison of all 5 baseline architectures and 7 progressive ablation tiers. |
 
 ---
 
@@ -1549,19 +1627,42 @@ python run_website.py
         }
       });
 
-      // Normalize relative image paths to work from results/ and web/
-      let processedMd = rawMd;
-      if (window.location.protocol === 'file:') {
-        if (window.location.pathname.includes('/web/')) {
-          processedMd = processedMd.replace(/!\[(.*?)\]\(plots\/(.*?)\)/g, '![$1](../results/plots/$2)');
-        }
-      }
-
       // Parse & Sanitize Markdown
-      const htmlContent = marked.parse(processedMd);
+      const htmlContent = marked.parse(rawMd);
       outputEl.innerHTML = DOMPurify.sanitize(htmlContent, {
-        ADD_TAGS: ['code', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
-        ADD_ATTR: ['target', 'id', 'class']
+        ADD_TAGS: ['img', 'code', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote', 'span', 'div', 'a'],
+        ADD_ATTR: ['src', 'alt', 'target', 'id', 'class', 'style', 'width', 'height', 'loading']
+      });
+
+      // Multi-candidate resilient fallback resolver for all plot images
+      outputEl.querySelectorAll('img').forEach(img => {
+        const rawSrc = img.getAttribute('src') || '';
+        const filename = rawSrc.split('/').pop().split('?')[0];
+
+        // Candidates in priority order based on protocol and folder
+        const candidates = [
+          'plots/' + filename,
+          './plots/' + filename,
+          '../results/plots/' + filename,
+          '/plots/' + filename,
+          '/results/plots/' + filename,
+          'results/plots/' + filename,
+          '../web/plots/' + filename,
+          'web/plots/' + filename
+        ];
+
+        img.onerror = function() {
+          let attempt = parseInt(this.dataset.retryAttempt || '0', 10);
+          if (attempt < candidates.length) {
+            this.dataset.retryAttempt = (attempt + 1).toString();
+            this.src = candidates[attempt];
+          }
+        };
+
+        // Lightbox trigger
+        img.addEventListener('click', () => {
+          openLightbox(img.src, img.alt || filename);
+        });
       });
 
       // Typeset MathJax equations
@@ -1619,6 +1720,32 @@ python run_website.py
           }
         });
       });
+    });
+
+    // Lightbox modal controls
+    function openLightbox(src, caption) {
+      const modal = document.getElementById('image-lightbox');
+      const img = document.getElementById('lightbox-img');
+      const cap = document.getElementById('lightbox-caption');
+      if (modal && img && cap) {
+        img.src = src;
+        cap.textContent = caption;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeLightbox(e) {
+      if (e && e.target && e.target.id === 'lightbox-img') return;
+      const modal = document.getElementById('image-lightbox');
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
     });
   </script>
 </body>
