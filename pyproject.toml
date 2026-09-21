@@ -1,0 +1,11 @@
+[project]
+name = "crescendo-jail-break"
+version = "2.0.0"
+description = "Crescendo Multi-Turn Jailbreak Defense Lab"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.22.0"
+]
+
+[tool.vercel]
+entrypoint = "api/index.py"

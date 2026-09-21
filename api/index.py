@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Vercel Serverless Function Entrypoint for Crescendo Defense Lab.
-Exposes REST APIs (/api/turn, /api/scenarios, /api/status, /api/reset) for Vercel deployment.
+Exposes both WSGI application callable `app` and BaseHTTPRequestHandler `handler`
+to be compatible with all Vercel Python runtimes.
 """
 import os
 import sys
@@ -154,6 +155,158 @@ def generate_mock_assistant_response(prompt: str, decision: str, turn_number: in
         )
 
 
+# =============================================================================
+# WSGI Application Callable (Vercel Python Runtime Standard Entrypoint)
+# =============================================================================
+def app(environ, start_response):
+    """Standard WSGI entrypoint for Vercel Python runtime."""
+    raw_path = environ.get("PATH_INFO", "")
+    path = raw_path.rstrip("/") if len(raw_path) > 1 else raw_path
+    method = environ.get("REQUEST_METHOD", "GET").upper()
+
+    cors_headers = [
+        ("Content-Type", "application/json"),
+        ("Access-Control-Allow-Origin", "*"),
+        ("Access-Control-Allow-Methods", "GET, POST, OPTIONS"),
+        ("Access-Control-Allow-Headers", "Content-Type"),
+    ]
+
+    if method == "OPTIONS":
+        start_response("204 No Content", [
+            ("Access-Control-Allow-Origin", "*"),
+            ("Access-Control-Allow-Methods", "GET, POST, OPTIONS"),
+            ("Access-Control-Allow-Headers", "Content-Type"),
+        ])
+        return [b""]
+
+    if method == "GET":
+        if path.endswith("/api/scenarios") or path == "/api/scenarios":
+            data = json.dumps({"status": "success", "scenarios": load_preset_scenarios()}).encode("utf-8")
+            start_response("200 OK", cors_headers)
+            return [data]
+
+        if path.endswith("/api/status") or path == "/api/status":
+            try:
+                pipeline = get_pipeline()
+                data = json.dumps({
+                    "status": "healthy",
+                    "version": "PRD-2.0-Production",
+                    "mode": "Stateful Decoupled Defense Proxy",
+                    "platform": "Vercel Serverless Edge",
+                    "active_sessions": len(pipeline.active_sessions),
+                    "config": {
+                        "memory_decay": pipeline.memory_decay,
+                        "history_window": pipeline.history_window,
+                        "allow_threshold": pipeline.allow_threshold,
+                        "warn_threshold": pipeline.warn_threshold,
+                        "restrict_threshold": pipeline.restrict_threshold,
+                        "release_margin": pipeline.release_margin,
+                        "use_dynamic_mode": pipeline.use_dynamic_mode,
+                        "risk_mode": pipeline.risk_mode.value
+                    }
+                }).encode("utf-8")
+                start_response("200 OK", cors_headers)
+                return [data]
+            except Exception as e:
+                err = json.dumps({"status": "error", "message": str(e)}).encode("utf-8")
+                start_response("500 Internal Server Error", cors_headers)
+                return [err]
+
+        if path.endswith("/api/livereload") or path == "/api/livereload":
+            data = json.dumps({"status": "ok", "mtime": time.time()}).encode("utf-8")
+            start_response("200 OK", cors_headers)
+            return [data]
+
+        data = json.dumps({"error": f"API endpoint {path} not found."}).encode("utf-8")
+        start_response("404 Not Found", cors_headers)
+        return [data]
+
+    if method == "POST":
+        try:
+            length = int(environ.get("CONTENT_LENGTH", 0) or 0)
+        except (ValueError, TypeError):
+            length = 0
+
+        post_data = environ["wsgi.input"].read(length).decode("utf-8") if length > 0 else "{}"
+        try:
+            payload = json.loads(post_data) if post_data else {}
+        except Exception:
+            payload = {}
+
+        if path.endswith("/api/reset") or path == "/api/reset":
+            session_id = payload.get("session_id", "default_session")
+            try:
+                pipeline = get_pipeline()
+                pipeline.reset_session(session_id)
+                data = json.dumps({"status": "success", "message": f"Session {session_id} reset."}).encode("utf-8")
+                start_response("200 OK", cors_headers)
+                return [data]
+            except Exception as e:
+                err = json.dumps({"error": str(e)}).encode("utf-8")
+                start_response("500 Internal Server Error", cors_headers)
+                return [err]
+
+        if path.endswith("/api/turn") or path == "/api/turn":
+            session_id = payload.get("session_id", "default_session")
+            user_prompt = payload.get("prompt", "").strip()
+
+            if not user_prompt:
+                data = json.dumps({"error": "Prompt cannot be empty."}).encode("utf-8")
+                start_response("400 Bad Request", cors_headers)
+                return [data]
+
+            try:
+                pipeline = get_pipeline()
+                result = pipeline.process_turn(session_id=session_id, user_prompt=user_prompt)
+                decision = result.get("decision", "ALLOW")
+                turn_number = result.get("turn_number", 1)
+                mock_response = generate_mock_assistant_response(user_prompt, decision, turn_number)
+
+                explain_obj = result.get("explanation", {})
+                explain_text = result.get("explain_text", explain_obj.get("text", "") if isinstance(explain_obj, dict) else str(explain_obj))
+
+                response_payload = {
+                    "status": "success",
+                    "session_id": session_id,
+                    "turn_number": turn_number,
+                    "prompt": user_prompt,
+                    "decision": decision,
+                    "response": mock_response,
+                    "signals": {
+                        "H": round(float(result.get("H", result.get("harmfulness", 0.0))), 4),
+                        "E": round(float(result.get("E", result.get("escalation", 0.0))), 4),
+                        "S": round(float(result.get("S", result.get("semantic_drift", 0.0))), 4),
+                        "B": round(float(result.get("B", result.get("bypass", 0.0))), 4),
+                        "CRS": round(float(result.get("crs", 0.0)), 4),
+                        "C_t": round(float(result.get("contextual_risk", 0.0)), 4),
+                        "T_t": round(float(result.get("threshold", 0.75)), 4),
+                        "trend": round(float(result.get("trend", 0.0)), 4),
+                        "persistence": round(float(result.get("persistence", 0.0)), 4)
+                    },
+                    "active_signals": result.get("active_signals", []),
+                    "latency_ms": result.get("latency_breakdown", {}),
+                    "explanation": explain_text,
+                    "explanation_details": explain_obj if isinstance(explain_obj, dict) else {}
+                }
+                data = json.dumps(response_payload).encode("utf-8")
+                start_response("200 OK", cors_headers)
+                return [data]
+            except Exception as e:
+                err = json.dumps({"error": str(e)}).encode("utf-8")
+                start_response("500 Internal Server Error", cors_headers)
+                return [err]
+
+        data = json.dumps({"error": f"API endpoint {path} not found."}).encode("utf-8")
+        start_response("404 Not Found", cors_headers)
+        return [data]
+
+    start_response("405 Method Not Allowed", cors_headers)
+    return [b""]
+
+
+# =============================================================================
+# BaseHTTPRequestHandler Class (Legacy / Fallback Vercel Handler)
+# =============================================================================
 class handler(BaseHTTPRequestHandler):
     """Vercel Serverless Function HTTP Request Handler."""
 
@@ -249,20 +402,13 @@ class handler(BaseHTTPRequestHandler):
 
             try:
                 pipeline = get_pipeline()
-                result = pipeline.process_turn(
-                    session_id=session_id,
-                    user_prompt=user_prompt
-                )
-
+                result = pipeline.process_turn(session_id=session_id, user_prompt=user_prompt)
                 decision = result.get("decision", "ALLOW")
                 turn_number = result.get("turn_number", 1)
                 mock_response = generate_mock_assistant_response(user_prompt, decision, turn_number)
 
                 explain_obj = result.get("explanation", {})
-                explain_text = result.get(
-                    "explain_text",
-                    explain_obj.get("text", "") if isinstance(explain_obj, dict) else str(explain_obj)
-                )
+                explain_text = result.get("explain_text", explain_obj.get("text", "") if isinstance(explain_obj, dict) else str(explain_obj))
 
                 response_payload = {
                     "status": "success",
@@ -272,15 +418,15 @@ class handler(BaseHTTPRequestHandler):
                     "decision": decision,
                     "response": mock_response,
                     "signals": {
-                        "H": round(float(result.get("H", result.get("harmfulness", result.get("h_score", 0.0)))), 4),
-                        "E": round(float(result.get("E", result.get("escalation", result.get("e_score", 0.0)))), 4),
-                        "S": round(float(result.get("S", result.get("semantic_drift", result.get("s_score", 0.0)))), 4),
-                        "B": round(float(result.get("B", result.get("bypass", result.get("b_score", 0.0)))), 4),
+                        "H": round(float(result.get("H", result.get("harmfulness", 0.0))), 4),
+                        "E": round(float(result.get("E", result.get("escalation", 0.0))), 4),
+                        "S": round(float(result.get("S", result.get("semantic_drift", 0.0))), 4),
+                        "B": round(float(result.get("B", result.get("bypass", 0.0))), 4),
                         "CRS": round(float(result.get("crs", 0.0)), 4),
-                        "C_t": round(float(result.get("contextual_risk", result.get("historical_risk", 0.0))), 4),
-                        "T_t": round(float(result.get("threshold", result.get("dynamic_threshold", 0.75))), 4),
-                        "trend": round(float(result.get("trend", result.get("trend_score", 0.0))), 4),
-                        "persistence": round(float(result.get("persistence", result.get("persistence_score", 0.0))), 4)
+                        "C_t": round(float(result.get("contextual_risk", 0.0)), 4),
+                        "T_t": round(float(result.get("threshold", 0.75)), 4),
+                        "trend": round(float(result.get("trend", 0.0)), 4),
+                        "persistence": round(float(result.get("persistence", 0.0)), 4)
                     },
                     "active_signals": result.get("active_signals", []),
                     "latency_ms": result.get("latency_breakdown", {}),
