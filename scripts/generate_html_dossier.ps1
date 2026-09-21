@@ -28,10 +28,14 @@ if (Test-Path $resultsMdPath) {
 
     # Web results HTML
     $outResults2 = Join-Path $root "web\results_dossier.html"
+    $outResults3 = Join-Path $root "public\results_dossier.html"
     $webResultsHeader = $header.Replace('href="../web/index.html"', 'href="/"')
     $fullHtml2 = $webResultsHeader + "`n" + $resultsMd + "`n" + $footer
     [System.IO.File]::WriteAllText($outResults2, $fullHtml2, [System.Text.Encoding]::UTF8)
-    Write-Host "Generated: $outResults2"
+    if (Test-Path (Join-Path $root "public")) {
+        [System.IO.File]::WriteAllText($outResults3, $fullHtml2, [System.Text.Encoding]::UTF8)
+    }
+    Write-Host "Generated: $outResults2 & $outResults3"
 }
 
 # -----------------------------------------------------------------------------
@@ -54,10 +58,15 @@ if (Test-Path $archMdPath) {
 
     # Web architecture HTML
     $outArch2 = Join-Path $root "web\master_architecture_report.html"
+    $outArch3 = Join-Path $root "public\master_architecture_report.html"
     $webArchHeader = $archHeader.Replace('href="../web/index.html"', 'href="/"')
     $fullArchHtml2 = $webArchHeader + "`n" + $archMd + "`n" + $footer
     [System.IO.File]::WriteAllText($outArch2, $fullArchHtml2, [System.Text.Encoding]::UTF8)
-    Write-Host "Generated: $outArch2"
+    if (Test-Path (Join-Path $root "public")) {
+        [System.IO.File]::WriteAllText($outArch3, $fullArchHtml2, [System.Text.Encoding]::UTF8)
+    }
+    Write-Host "Generated: $outArch2 & $outArch3"
 }
+
 
 Write-Host "All interactive HTML dossiers compiled successfully!"

@@ -1,0 +1,11 @@
+# Full dependencies for local GPU research, training, and model evaluation
+torch
+transformers
+accelerate
+sentence-transformers
+pandas
+matplotlib
+numpy
+scikit-learn
+tqdm
+peft

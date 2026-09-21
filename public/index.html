@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crescendo Multi-Turn Jailbreak Defense Testbench</title>
+  <meta name="description" content="Live testing console and telemetry dashboard for the Crescendo PRD Contextual Memory Defense against multi-turn LLM jailbreaks.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=20260919_06">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation / Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-mark">
+          <div class="shield-icon">🛡️</div>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">CRESCENDO DEFENSE LAB</div>
+          <div class="brand-subtitle">Contextual Risk Accumulation & Dynamic Hysteresis Testbench</div>
+        </div>
+      </div>
+
+      <div class="header-center"></div>
+
+      <div class="header-right">
+        <a href="/results_dossier.html" target="_blank" class="btn btn-secondary btn-sm" title="Open Master Verified Results Dossier (HTML)">
+          <span class="btn-icon">📊</span> Results Dossier
+        </a>
+        <a href="/master_architecture_report.html" target="_blank" class="btn btn-secondary btn-sm" title="Open Master Architectural Blueprint (HTML)">
+          <span class="btn-icon">🏛️</span> Architecture Blueprint
+        </a>
+
+        <button id="systemGuideBtn" class="btn btn-secondary btn-sm" title="Unified System Architecture & Defense Guide">
+          <span class="btn-icon">📐</span> System Guide
+        </button>
+        <button id="exportReportBtn" class="btn btn-secondary btn-sm" title="Export session evaluation audit report as JSON & Markdown">
+          <span class="btn-icon">📥</span> Export Report
+        </button>
+        <button id="resetSessionBtn" class="btn btn-secondary btn-sm" title="Reset all memory and hysteresis for session">
+          <span class="btn-icon">↻</span> Reset Session
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="main-workspace">
+      <!-- Scenario Control Bar -->
+      <section class="scenario-bar">
+        <div class="scenario-selector-group">
+          <label for="scenarioSelect" class="bar-label">Benchmark Scenarios:</label>
+          <select id="scenarioSelect" class="form-select">
+            <option value="">-- Choose a Preset Attack or Benign Conversation --</option>
+          </select>
+        </div>
+
+        <div class="scenario-actions">
+          <button id="loadScenarioBtn" class="btn btn-primary btn-sm" disabled>
+            <span class="btn-icon">📥</span> Load Scenario
+          </button>
+          <button id="stepTurnBtn" class="btn btn-action btn-sm" disabled>
+            <span class="btn-icon">▶</span> Step Next Turn
+          </button>
+          <button id="autoRunBtn" class="btn btn-accent btn-sm" disabled>
+            <span class="btn-icon">⚡</span> Auto-Play Scenario
+          </button>
+        </div>
+
+        <div class="scenario-meta" id="scenarioMeta">
+          <span class="meta-tag tag-neutral" id="scenarioCategoryTag">Custom Session</span>
+          <span class="meta-turns" id="scenarioTurnsCount">0 / 0 turns played</span>
+        </div>
+      </section>
+
+      <!-- Risk Journey Stepper -->
+      <section class="risk-journey-container" id="riskJourneyContainer">
+        <div class="risk-journey-header">
+          <div class="journey-title-block">
+            <span class="journey-icon">📈</span>
+            <span class="journey-label">CONVERSATIONAL RISK JOURNEY</span>
+            <span class="journey-sub">Multi-turn trajectory & escalation milestones</span>
+          </div>
+          <div class="journey-summary" id="journeySummaryText">Awaiting turn evaluation...</div>
+        </div>
+        <div class="risk-journey-track" id="riskJourneyTrack">
+          <div class="journey-step-placeholder">Select a scenario or send a turn to watch the escalation journey unfold</div>
+        </div>
+      </section>
+
+      <!-- Split Layout: Chat vs Telemetry -->
+      <main class="content-grid">
+        <!-- Left Panel: Chat Interface -->
+        <section class="panel chat-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-icon">💬</span> Conversation Stream & Security Cards
+            </div>
+            <div class="session-badge">
+              Session: <code id="activeSessionId">session-live-01</code>
+            </div>
+          </div>
+
+          <div class="chat-viewport" id="chatViewport">
+            <!-- Initial Welcome Message -->
+            <div class="empty-state" id="emptyChatState">
+              <div class="empty-icon">🔬</div>
+              <h3>Multi-Turn Crescendo Defense Testbench</h3>
+              <p>
+                In a Crescendo attack, an adversary starts with seemingly harmless questions and gradually escalates
+                harmful intent turn-by-turn to bypass static single-turn safety filters.
+              </p>
+              <div class="quick-tips">
+                <div class="tip-item">
+                  <strong>1. Pick a scenario:</strong> Select an attack (e.g. <em>Privilege Escalation</em> or <em>Phishing</em>) or a benign dialog.
+                </div>
+                <div class="tip-item">
+                  <strong>2. Step through turns:</strong> Watch the 4 risk signals ($H, E, S, B$) and contextual memory ($C_t$) build up.
+                </div>
+                <div class="tip-item">
+                  <strong>3. Observe the interception:</strong> Watch the defense transition from <code>ALLOW</code> to <code>BLOCK</code> before harmful payloads are delivered.
+                </div>
+              </div>
+            </div>
+            <div class="messages-list" id="messagesList"></div>
+          </div>
+
+          <!-- Turn Input Bar -->
+          <div class="chat-input-area">
+            <div class="input-container">
+              <textarea
+                id="promptInput"
+                class="chat-textarea"
+                placeholder="Type your turn prompt, or select a scenario above... (Press Ctrl+Enter to send)"
+                rows="3"
+              ></textarea>
+              <div class="input-controls">
+                <span class="input-hint">Ctrl + Enter to send turn</span>
+                <button id="sendPromptBtn" class="btn btn-primary">
+                  <span>Send Turn</span>
+                  <span class="btn-arrow">→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Panel: Telemetry & Deep Explainability -->
+        <section class="panel telemetry-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-icon">📊</span> PRD Defense Telemetry & Decision Engine
+            </div>
+            <div class="turn-indicator" id="currentTurnBadge">
+              Turn: <span>0</span>
+            </div>
+          </div>
+
+          <div class="telemetry-scroll">
+            <!-- Verdict Hero Banner -->
+            <div class="verdict-banner verdict-idle" id="verdictBanner">
+              <div class="verdict-state">
+                <span class="verdict-icon" id="verdictIcon">⚡</span>
+                <div class="verdict-text-block">
+                  <div class="verdict-label">DECISION VERDICT</div>
+                  <div class="verdict-title" id="verdictTitle">IDLE / READY</div>
+                </div>
+              </div>
+              <div class="verdict-details">
+                <div class="verdict-stat">
+                  <span class="v-name">CRS<sub>t</sub> (Turn)</span>
+                  <span class="v-val" id="valCrs">0.000</span>
+                </div>
+                <div class="verdict-stat">
+                  <span class="v-name">Memory C<sub>t</sub></span>
+                  <span class="v-val" id="valMemory">0.000</span>
+                </div>
+                <div class="verdict-stat">
+                  <span class="v-name">Threshold T<sub>t</sub></span>
+                  <span class="v-val" id="valThreshold">0.750</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dual-Threshold Stateful Hysteresis Path -->
+            <div class="state-machine-box">
+              <div class="state-machine-label">HYSTERESIS STATE ENGINE:</div>
+              <div class="state-machine-track">
+                <div class="state-node" id="stateNodeAllow">
+                  <span class="node-dot"></span>
+                  <span class="node-name">ALLOW</span>
+                </div>
+                <span class="state-arrow">→</span>
+                <div class="state-node" id="stateNodeWarn">
+                  <span class="node-dot"></span>
+                  <span class="node-name">WARN</span>
+                </div>
+                <span class="state-arrow">→</span>
+                <div class="state-node" id="stateNodeRestrict">
+                  <span class="node-dot"></span>
+                  <span class="node-name">RESTRICT</span>
+                </div>
+                <span class="state-arrow">→</span>
+                <div class="state-node" id="stateNodeBlock">
+                  <span class="node-dot"></span>
+                  <span class="node-name">BLOCK</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Decision Rationale Box -->
+            <div class="decision-rationale-box" id="decisionRationaleBox">
+              <div class="rationale-header">
+                <span class="rationale-icon">💡</span>
+                <span class="rationale-title">DECISION RATIONALE</span>
+              </div>
+              <ul class="rationale-list" id="decisionRationaleList">
+                <li>System ready. Real-time composite risk evaluation active across 4 orthogonal safety layers.</li>
+              </ul>
+            </div>
+
+            <!-- Memory Comparison Context Line -->
+            <div class="memory-comparison-banner" id="memoryComparisonBanner">
+              <span class="cmp-badge">Contextual Risk:</span>
+              <span class="cmp-text" id="memoryComparisonText">Historical memory is clear ($C_t = 0.000$). Standard single-turn tolerance.</span>
+            </div>
+
+            <!-- Signal Gauges Grid -->
+            <div class="telemetry-section-title">SECURITY ANALYZER SIGNALS</div>
+            <div class="gauges-grid">
+              <!-- Harmfulness Gauge -->
+              <div class="gauge-card" id="gaugeCardH">
+                <div class="gauge-top">
+                  <span class="signal-badge badge-h">H</span>
+                  <span class="gauge-name">Harmfulness</span>
+                  <span class="gauge-weight">(40%)</span>
+                  <span class="gauge-delta" id="gaugeDeltaH">—</span>
+                </div>
+                <div class="gauge-value" id="gaugeValH">0.000</div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-h" id="gaugeBarH" style="width: 0%"></div>
+                </div>
+                <div class="gauge-meta">Keyword & semantic safety</div>
+                <div class="gauge-dynamic-meaning" id="gaugeMeaningH">Baseline compliant</div>
+              </div>
+
+              <!-- Intent Escalation Gauge -->
+              <div class="gauge-card" id="gaugeCardE">
+                <div class="gauge-top">
+                  <span class="signal-badge badge-e">E</span>
+                  <span class="gauge-name">Escalation</span>
+                  <span class="gauge-weight">(30%)</span>
+                  <span class="gauge-delta" id="gaugeDeltaE">—</span>
+                </div>
+                <div class="gauge-value" id="gaugeValE">0.000</div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-e" id="gaugeBarE" style="width: 0%"></div>
+                </div>
+                <div class="gauge-meta">Turn-over-turn intent slope</div>
+                <div class="gauge-dynamic-meaning" id="gaugeMeaningE">No intent acceleration</div>
+              </div>
+
+              <!-- Semantic Drift Gauge -->
+              <div class="gauge-card" id="gaugeCardS">
+                <div class="gauge-top">
+                  <span class="signal-badge badge-s">S</span>
+                  <span class="gauge-name">Semantic Drift</span>
+                  <span class="gauge-weight">(20%)</span>
+                  <span class="gauge-delta" id="gaugeDeltaS">—</span>
+                </div>
+                <div class="gauge-value" id="gaugeValS">0.000</div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-s" id="gaugeBarS" style="width: 0%"></div>
+                </div>
+                <div class="gauge-meta">Cosine distance to turn 1 anchor</div>
+                <div class="gauge-dynamic-meaning" id="gaugeMeaningS">Anchor aligned</div>
+              </div>
+
+              <!-- Bypass Detector Gauge -->
+              <div class="gauge-card" id="gaugeCardB">
+                <div class="gauge-top">
+                  <span class="signal-badge badge-b">B</span>
+                  <span class="gauge-name">Bypass Resistance</span>
+                  <span class="gauge-weight">(10%)</span>
+                  <span class="gauge-delta" id="gaugeDeltaB">—</span>
+                </div>
+                <div class="gauge-value" id="gaugeValB">0.000</div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-b" id="gaugeBarB" style="width: 0%"></div>
+                </div>
+                <div class="gauge-meta">Jailbreak patterns & refusal resistance</div>
+                <div class="gauge-dynamic-meaning" id="gaugeMeaningB">No evasion markers</div>
+              </div>
+            </div>
+
+            <!-- Risk Trajectory Chart -->
+            <div class="telemetry-section-title">
+              <span>MULTI-TURN RISK TRAJECTORY</span>
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-color color-crs"></span> CRS<sub>t</sub> (Turn Risk)</span>
+                <span class="legend-item"><span class="legend-color color-mem"></span> C<sub>t</sub> (Memory Risk)</span>
+                <span class="legend-item"><span class="legend-color color-thresh"></span> T<sub>t</sub> (Threshold)</span>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="trajectoryCanvas" width="540" height="200"></canvas>
+            </div>
+
+            <!-- Explainability & Latency Accordion -->
+            <div class="telemetry-section-title">DEFENSE EXPLAINABILITY & PROFILING</div>
+            <div class="info-card">
+              <div class="info-card-header">
+                <span class="info-icon">🔍</span>
+                <span>Signal Explainability Log</span>
+              </div>
+              <pre class="explain-console" id="explainConsole">Awaiting conversation turn input...</pre>
+            </div>
+
+            <!-- Latency Profile Bar -->
+            <div class="latency-card">
+              <div class="latency-header">
+                <span>Turn Processing Latency:</span>
+                <strong id="totalLatencyText">0.0 ms</strong>
+              </div>
+              <div class="latency-meter">
+                <div class="latency-seg seg-drift" id="segDrift" style="width: 25%" title="Semantic Drift"></div>
+                <div class="latency-seg seg-harm" id="segHarm" style="width: 25%" title="Harmfulness"></div>
+                <div class="latency-seg seg-intent" id="segIntent" style="width: 25%" title="Escalation"></div>
+                <div class="latency-seg seg-bypass" id="segBypass" style="width: 25%" title="Bypass"></div>
+              </div>
+              <div class="latency-labels">
+                <span>Drift</span>
+                <span>Harm</span>
+                <span>Escalation</span>
+                <span>Bypass</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- System Guide & Architecture Modal -->
+  <div class="modal-overlay" id="systemGuideModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">🛡️</span>
+          <div>
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <h3 class="modal-title" style="margin: 0;">Crescendo PRD Defense — System Architecture Guide</h3>
+              <div class="status-pill status-healthy" id="systemStatusPill">
+                <span class="status-dot"></span>
+                <span id="systemStatusText">PRD Active (&lambda;=0.8, T<sub>0</sub>=0.75)</span>
+              </div>
+            </div>
+            <p class="modal-subtitle">Full-Stack Multi-Turn Jailbreak Interception Framework</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="closeGuideModalBtn" aria-label="Close Guide">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="guide-section">
+          <h4>1. Four-Tier Full-Stack Architecture</h4>
+          <p>The system is an integrated full-stack defense framework operating in real-time:</p>
+          <div class="guide-tier-grid">
+            <div class="guide-tier-card">
+              <div class="tier-badge">TIER 1</div>
+              <div class="tier-name">Web Research Testbench</div>
+              <div class="tier-desc">Real-time telemetry, interactive Risk Journey stepper, Security Turn Cards, Trajectory Canvas, and 1-click audit reports.</div>
+            </div>
+            <div class="guide-tier-card">
+              <div class="tier-badge">TIER 2</div>
+              <div class="tier-name">REST API Gateway</div>
+              <div class="tier-desc">Session state isolation, conversation history buffering, latency profiling, and dynamic preset scenario serving.</div>
+            </div>
+            <div class="guide-tier-card">
+              <div class="tier-badge">TIER 3</div>
+              <div class="tier-name">Stateful PRD Engine</div>
+              <div class="tier-desc">Sub-25ms FAISS vector similarity, 4-signal fusion (H, E, S, B), contextual memory decay (&lambda;=0.80), and dynamic adaptive thresholding.</div>
+            </div>
+            <div class="guide-tier-card">
+              <div class="tier-badge">TIER 4</div>
+              <div class="tier-name">Target LLM & Mitigation</div>
+              <div class="tier-desc">4-Tier state machine (ALLOW, WARN, RESTRICT, BLOCK) with &delta;=0.15 hysteresis preventing oscillating evasions.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-section" style="margin-top: 24px;">
+          <h4 style="color: #38bdf8; font-size: 14px; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.5px;">
+            2. How the Defense Thinks: Mathematical Signals & Decision Pipeline
+          </h4>
+          <p style="color: #94a3b8; font-size: 12.5px; margin-bottom: 16px;">
+            Every conversational turn is analyzed in parallel across four distinct risk signals, accumulated in stateful memory, and evaluated against a dynamic adaptive threshold.
+          </p>
+
+          <!-- Step 1: Master Risk Formulas -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 16px;">
+            <!-- Instant Turn Risk -->
+            <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.25); border-left: 4px solid #38bdf8; border-radius: 8px; padding: 14px 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 11px; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.8px;">⚡ Turn Composite Risk (CRS)</span>
+                <span style="font-size: 10px; font-weight: 700; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.3);">Instant Score</span>
+              </div>
+              <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 8px 12px; font-family: var(--font-mono); font-size: 12px; color: #f1f5f9; margin-bottom: 8px;">
+                CRS<sub>t</sub> = 0.40&middot;H<sub>t</sub> + 0.30&middot;E<sub>t</sub> + 0.20&middot;S<sub>t</sub> + 0.10&middot;B<sub>t</sub>
+              </div>
+              <div style="font-size: 11.5px; color: #cbd5e1; line-height: 1.45;">
+                Weighted blend of immediate harm (40%), escalation speed (30%), semantic topic drift (20%), and bypass tricks (10%).
+              </div>
+            </div>
+
+            <!-- Contextual Memory -->
+            <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(168, 85, 247, 0.25); border-left: 4px solid #a855f7; border-radius: 8px; padding: 14px 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 11px; font-weight: 800; color: #c084fc; text-transform: uppercase; letter-spacing: 0.8px;">🧠 Contextual Memory (C<sub>t</sub>)</span>
+                <span style="font-size: 10px; font-weight: 700; background: rgba(168, 85, 247, 0.15); color: #c084fc; padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(168, 85, 247, 0.3);">&lambda; = 0.80 Decay</span>
+              </div>
+              <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 8px 12px; font-family: var(--font-mono); font-size: 12px; color: #f1f5f9; margin-bottom: 8px;">
+                C<sub>t</sub> = 0.80&middot;C<sub>t-1</sub> + 0.20&middot;CRS<sub>t</sub> &nbsp;&nbsp;(t<sub>1/2</sub> = 3.11 turns)
+              </div>
+              <div style="font-size: 11.5px; color: #cbd5e1; line-height: 1.45;">
+                Retains past suspicious behavior across turns so attackers cannot slowly build up to dangerous payloads without triggering detection.
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: The 4 Core Signals Explained -->
+          <div style="margin-bottom: 8px; font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px;">
+            The 4 Component Signals (H, E, S, B)
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 16px;">
+            <!-- Signal 1: H (Harmfulness) -->
+            <div style="background: rgba(13, 18, 29, 0.85); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 12px 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 12px; font-weight: 700; color: #f87171;">🚨 H: Harmfulness</span>
+                <span style="font-size: 10px; font-weight: 700; color: #f87171; background: rgba(239, 68, 68, 0.12); padding: 2px 6px; border-radius: 4px;">40% Weight</span>
+              </div>
+              <div style="font-size: 11.5px; color: #cbd5e1; margin-bottom: 6px; line-height: 1.4;">
+                <strong>What it detects:</strong> Prohibited danger keywords & actionable exploit requests across 14 high-severity safety policies (CBRN, cyber exploits, malware, credentials).
+              </div>
+              <div style="background: rgba(0, 0, 0, 0.4); border-radius: 4px; padding: 6px 10px; font-family: var(--font-mono); font-size: 11px; color: #fca5a5;">
+                H<sub>t</sub> = 0.60&middot;min(1, Count<sub>kw</sub>/3) + 0.40&middot;Actionability
+              </div>
+            </div>
+
+            <!-- Signal 2: E (Escalation) -->
+            <div style="background: rgba(13, 18, 29, 0.85); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 8px; padding: 12px 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 12px; font-weight: 700; color: #fbbf24;">📈 E: Intent Escalation</span>
+                <span style="font-size: 10px; font-weight: 700; color: #fbbf24; background: rgba(245, 158, 11, 0.12); padding: 2px 6px; border-radius: 4px;">30% Weight</span>
+              </div>
+              <div style="font-size: 11.5px; color: #cbd5e1; margin-bottom: 6px; line-height: 1.4;">
+                <strong>What it detects:</strong> The speed at which questions become more dangerous across the last 5 turns via Ordinary Least Squares (OLS) linear regression slope.
+              </div>
+              <div style="background: rgba(0, 0, 0, 0.4); border-radius: 4px; padding: 6px 10px; font-family: var(--font-mono); font-size: 11px; color: #fde68a;">
+                E<sub>t</sub> = clip((Slope<sub>OLS</sub> + 0.15) / 0.40, 0.0, 1.0)
+              </div>
+            </div>
+
+            <!-- Signal 3: S (Semantic Drift) -->
+            <div style="background: rgba(13, 18, 29, 0.85); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 12px 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 12px; font-weight: 700; color: #38bdf8;">🧬 S: Semantic Drift</span>
+                <span style="font-size: 10px; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 2px 6px; border-radius: 4px;">20% Weight</span>
+              </div>
+              <div style="font-size: 11.5px; color: #cbd5e1; margin-bottom: 6px; line-height: 1.4;">
+                <strong>What it detects:</strong> Topic migration away from the initial benign conversation anchor using FAISS dense embedding cosine similarity (384 dimensions).
+              </div>
+              <div style="background: rgba(0, 0, 0, 0.4); border-radius: 4px; padding: 6px 10px; font-family: var(--font-mono); font-size: 11px; color: #7dd3fc;">
+                S<sub>t</sub> = 1.0 - max(CosineSimilarity(v<sub>t</sub>, Anchors))
+              </div>
+            </div>
+
+            <!-- Signal 4: B (Bypass Heuristics) -->
+            <div style="background: rgba(13, 18, 29, 0.85); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 12px 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 12px; font-weight: 700; color: #34d399;">🎭 B: Bypass Heuristics</span>
+                <span style="font-size: 10px; font-weight: 700; color: #34d399; background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 4px;">10% Weight</span>
+              </div>
+              <div style="font-size: 11.5px; color: #cbd5e1; margin-bottom: 6px; line-height: 1.4;">
+                <strong>What it detects:</strong> Known jailbreak tricks: persona roleplay (DAN), Base64/ROT13 encodings, character homoglyphs, and prompt instruction overrides.
+              </div>
+              <div style="background: rgba(0, 0, 0, 0.4); border-radius: 4px; padding: 6px 10px; font-family: var(--font-mono); font-size: 11px; color: #a7f3d0;">
+                B<sub>t</sub> = &sum; w<sub>j</sub> &middot; &Iopf;(EvasionClass<sub>j</sub>) &nbsp;&nbsp;[6 Patterns]
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Decision Scale & Hysteresis -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+            <!-- Dynamic Threshold Scale -->
+            <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 14px 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 11px; font-weight: 800; color: #34d399; text-transform: uppercase; letter-spacing: 0.8px;">🎯 Dynamic Threshold (&tau;<sub>t</sub>) & Bands</span>
+                <span style="font-size: 10px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 2px 8px; border-radius: 4px;">Base &tau;₀ = 0.825</span>
+              </div>
+              <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 8px 12px; font-family: var(--font-mono); font-size: 11.5px; color: #6ee7b7; margin-bottom: 10px;">
+                &tau;<sub>t</sub> = clip(0.825 - 0.10&middot;D<sub>t</sub> - 0.15&middot;E<sub>t</sub> - 0.05&middot;L<sub>t</sub>, 0.60, 0.85)
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 11px;">
+                <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 8px; border-radius: 4px;">
+                  <span style="color: #34d399; font-weight: 700;">🟢 ALLOW (&lt; 0.40)</span><br>
+                  <span style="color: #94a3b8;">Normal safe response</span>
+                </div>
+                <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); padding: 6px 8px; border-radius: 4px;">
+                  <span style="color: #fbbf24; font-weight: 700;">🟡 WARN (&lt; 0.65)</span><br>
+                  <span style="color: #94a3b8;">Caution logged</span>
+                </div>
+                <div style="background: rgba(249, 115, 22, 0.08); border: 1px solid rgba(249, 115, 22, 0.2); padding: 6px 8px; border-radius: 4px;">
+                  <span style="color: #fb923c; font-weight: 700;">🟠 RESTRICT (&lt; &tau;<sub>t</sub>)</span><br>
+                  <span style="color: #94a3b8;">Abstract educational only</span>
+                </div>
+                <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 8px; border-radius: 4px;">
+                  <span style="color: #f87171; font-weight: 700;">🔴 BLOCK (&ge; &tau;<sub>t</sub>)</span><br>
+                  <span style="color: #94a3b8;">Request intercepted</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hysteresis Anti-Oscillation -->
+            <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 8px; padding: 14px 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 11px; font-weight: 800; color: #c084fc; text-transform: uppercase; letter-spacing: 0.8px;">🛡️ Hysteresis Anti-Oscillation (&delta;)</span>
+                <span style="font-size: 10px; font-weight: 700; background: rgba(168, 85, 247, 0.15); color: #c084fc; padding: 2px 8px; border-radius: 4px;">Margin &delta; = 0.15</span>
+              </div>
+              <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px; padding: 8px 12px; font-family: var(--font-mono); font-size: 11.5px; color: #d8b4fe; margin-bottom: 10px;">
+                &tau;<sub>release</sub> = &tau;<sub>t</sub> - 0.15 &nbsp;&nbsp;(De-escalation requires R<sub>eff</sub> &lt; &tau;<sub>release</sub>)
+              </div>
+              <div style="font-size: 11.5px; color: #cbd5e1; line-height: 1.5;">
+                <p style="margin-bottom: 6px;">
+                  <strong>Why it matters:</strong> Attackers often try "sawtooth evasion" by interleaving 1 dangerous question with 1 polite question to reset naive security filters.
+                </p>
+                <p style="color: #94a3b8;">
+                  <strong>The solution:</strong> Once elevated to <em>RESTRICT</em> or <em>BLOCK</em>, the defense latches. Downgrading requires at least <strong>2 consecutive safe turns (&lt; 0.35)</strong>, completely shutting down flip-flop bypasses.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-sm" id="closeGuideModalBtn2">Got It</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=20260911_02"></script>
+</body>
+</html>

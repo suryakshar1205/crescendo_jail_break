@@ -1,0 +1,178 @@
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const rawMd = document.getElementById('raw-markdown-data').textContent;
+      const outputEl = document.getElementById('markdown-output');
+      const tocList = document.getElementById('dynamic-toc');
+      const progressBar = document.getElementById('reading-progress');
+      const tocFilter = document.getElementById('toc-filter');
+
+      // Configure marked parser
+      marked.setOptions({
+        gfm: true,
+        breaks: false,
+        headerIds: true,
+        mangle: false,
+        highlight: function(code, lang) {
+          if (lang && hljs.getLanguage(lang)) {
+            try {
+              return hljs.highlight(code, { language: lang }).value;
+            } catch (__) {}
+          }
+          return hljs.highlightAuto(code).value;
+        }
+      });
+
+      // Parse & Sanitize Markdown
+      const htmlContent = marked.parse(rawMd);
+      outputEl.innerHTML = DOMPurify.sanitize(htmlContent, {
+        ADD_TAGS: ['img', 'code', 'pre', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote', 'span', 'div', 'a'],
+        ADD_ATTR: ['src', 'alt', 'target', 'id', 'class', 'style', 'width', 'height', 'loading']
+      });
+
+      // Multi-candidate resilient fallback resolver for all plot images
+      outputEl.querySelectorAll('img').forEach(img => {
+        const rawSrc = img.getAttribute('src') || '';
+        const filename = rawSrc.split('/').pop().split('?')[0];
+
+        // Candidates in priority order based on protocol and folder
+        const candidates = [
+          'plots/' + filename,
+          './plots/' + filename,
+          '../results/plots/' + filename,
+          '/plots/' + filename,
+          '/results/plots/' + filename,
+          'results/plots/' + filename,
+          '../web/plots/' + filename,
+          'web/plots/' + filename
+        ];
+
+        img.onerror = function() {
+          let attempt = parseInt(this.dataset.retryAttempt || '0', 10);
+          if (attempt < candidates.length) {
+            this.dataset.retryAttempt = (attempt + 1).toString();
+            this.src = candidates[attempt];
+          }
+        };
+
+        // Lightbox trigger
+        img.addEventListener('click', () => {
+          openLightbox(img.src, img.alt || filename);
+        });
+      });
+
+      // Render Mermaid diagrams
+      const mermaidNodes = outputEl.querySelectorAll('pre code.language-mermaid');
+      if (mermaidNodes.length > 0 && window.mermaid) {
+        try {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            themeVariables: {
+              primaryColor: '#1e293b',
+              primaryTextColor: '#f8fafc',
+              primaryBorderColor: '#38bdf8',
+              lineColor: '#38bdf8',
+              secondaryColor: '#0f172a',
+              tertiaryColor: '#1e293b'
+            }
+          });
+          mermaidNodes.forEach((node) => {
+            const pre = node.parentElement;
+            const container = document.createElement('div');
+            container.className = 'mermaid';
+            container.textContent = node.textContent;
+            pre.parentNode.replaceChild(container, pre);
+          });
+          mermaid.run().catch((err) => console.log('Mermaid run error:', err));
+        } catch (e) {
+          console.log('Mermaid init error:', e);
+        }
+      }
+
+      // Typeset MathJax equations
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([outputEl]).catch((err) => console.log('MathJax error:', err));
+      }
+
+      // Generate Dynamic Table of Contents
+      const headings = outputEl.querySelectorAll('h2, h3');
+      headings.forEach((h, index) => {
+        const id = h.id || `section-${index}`;
+        h.id = id;
+
+        const li = document.createElement('li');
+        li.className = h.tagName.toLowerCase() === 'h3' ? 'toc-item toc-subitem' : 'toc-item';
+        
+        const a = document.createElement('a');
+        a.href = `#${id}`;
+        a.textContent = h.textContent.replace(/^[\d\.\s]+/, '');
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // TOC Search Filter
+      tocFilter.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const items = tocList.querySelectorAll('.toc-item');
+        items.forEach((item) => {
+          const text = item.textContent.toLowerCase();
+          item.style.display = text.includes(query) ? 'block' : 'none';
+        });
+      });
+
+      // Reading Progress Bar & Active Section Highlight
+      window.addEventListener('scroll', () => {
+        const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = (window.scrollY / totalHeight) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        let currentActive = null;
+        headings.forEach((h) => {
+          const rect = h.getBoundingClientRect();
+          if (rect.top <= 120) {
+            currentActive = h.id;
+          }
+        });
+
+        const tocLinks = tocList.querySelectorAll('.toc-item');
+        tocLinks.forEach((li) => {
+          const a = li.querySelector('a');
+          if (a && a.getAttribute('href') === `#${currentActive}`) {
+            li.classList.add('active');
+          } else {
+            li.classList.remove('active');
+          }
+        });
+      });
+    });
+
+    // Lightbox modal controls
+    function openLightbox(src, caption) {
+      const modal = document.getElementById('image-lightbox');
+      const img = document.getElementById('lightbox-img');
+      const cap = document.getElementById('lightbox-caption');
+      if (modal && img && cap) {
+        img.src = src;
+        cap.textContent = caption;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeLightbox(e) {
+      if (e && e.target && e.target.id === 'lightbox-img') return;
+      const modal = document.getElementById('image-lightbox');
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+  </script>
+</body>
+</html>
