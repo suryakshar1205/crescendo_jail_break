@@ -3,21 +3,21 @@ Hardware, Memory, and Token Overhead Profiler for the Crescendo Defense Pipeline
 Tracks CPU/GPU memory footprint, processing latency, and token overhead percentage.
 """
 import os
+from typing import Dict, Any, Optional
+
+psutil: Any = None
 try:
     import psutil
     HAS_PSUTIL = True
 except Exception:
-    psutil = None
     HAS_PSUTIL = False
 
+torch: Any = None
 try:
     import torch
     HAS_TORCH = True
 except Exception:
-    torch = None
     HAS_TORCH = False
-
-from typing import Dict, Any, Optional
 
 class ResourceProfiler:
     """
@@ -31,7 +31,8 @@ class ResourceProfiler:
                 self.process = None
         else:
             self.process = None
-        self.has_cuda = HAS_TORCH and torch is not None and torch.cuda.is_available()
+        cuda_mod = getattr(torch, "cuda", None) if torch is not None else None
+        self.has_cuda = bool(HAS_TORCH and cuda_mod is not None and getattr(cuda_mod, "is_available", lambda: False)())
 
     def get_hardware_snapshot(self) -> Dict[str, Any]:
         """Captures instantaneous process RAM and CUDA VRAM usage."""
@@ -51,12 +52,15 @@ class ResourceProfiler:
         vram_mb = 0.0
         vram_allocated_mb = 0.0
 
-        if self.has_cuda:
+        if self.has_cuda and torch is not None:
             try:
-                vram_allocated_mb = torch.cuda.memory_allocated() / (1024 * 1024)
-                vram_mb = torch.cuda.memory_reserved() / (1024 * 1024)
+                cuda_mod = getattr(torch, "cuda", None)
+                if cuda_mod is not None:
+                    vram_allocated_mb = cuda_mod.memory_allocated() / (1024 * 1024)
+                    vram_mb = cuda_mod.memory_reserved() / (1024 * 1024)
             except Exception:
                 pass
+
 
         return {
             "ram_rss_mb": round(ram_mb, 2),
