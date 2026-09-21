@@ -7,5 +7,8 @@ dependencies = [
     "numpy>=1.22.0"
 ]
 
+[tool.pyright]
+extraPaths = [".", "src"]
+
 [tool.vercel]
 entrypoint = "api/index.py"
