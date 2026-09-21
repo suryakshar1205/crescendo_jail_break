@@ -33,6 +33,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
   <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
 
+  <!-- Mermaid.js for Dynamic Architecture Flowcharts -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+
   <style>
     :root {
       --bg-primary: #07090e;
@@ -412,6 +416,18 @@
       padding: 0;
       font-size: 12px;
       color: #e2e8f0;
+    }
+
+    .content-area .mermaid {
+      background: #090d16;
+      border: 1px solid var(--border-medium);
+      border-radius: 10px;
+      padding: 24px;
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: auto;
     }
 
     .content-area ul, .content-area ol {

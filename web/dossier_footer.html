@@ -62,6 +62,35 @@
         });
       });
 
+      // Render Mermaid diagrams
+      const mermaidNodes = outputEl.querySelectorAll('pre code.language-mermaid');
+      if (mermaidNodes.length > 0 && window.mermaid) {
+        try {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            themeVariables: {
+              primaryColor: '#1e293b',
+              primaryTextColor: '#f8fafc',
+              primaryBorderColor: '#38bdf8',
+              lineColor: '#38bdf8',
+              secondaryColor: '#0f172a',
+              tertiaryColor: '#1e293b'
+            }
+          });
+          mermaidNodes.forEach((node) => {
+            const pre = node.parentElement;
+            const container = document.createElement('div');
+            container.className = 'mermaid';
+            container.textContent = node.textContent;
+            pre.parentNode.replaceChild(container, pre);
+          });
+          mermaid.run().catch((err) => console.log('Mermaid run error:', err));
+        } catch (e) {
+          console.log('Mermaid init error:', e);
+        }
+      }
+
       // Typeset MathJax equations
       if (window.MathJax && window.MathJax.typesetPromise) {
         window.MathJax.typesetPromise([outputEl]).catch((err) => console.log('MathJax error:', err));

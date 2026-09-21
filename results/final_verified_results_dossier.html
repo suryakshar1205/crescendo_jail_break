@@ -33,6 +33,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
   <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
 
+  <!-- Mermaid.js for Dynamic Architecture Flowcharts -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+
   <style>
     :root {
       --bg-primary: #07090e;
@@ -412,6 +416,18 @@
       padding: 0;
       font-size: 12px;
       color: #e2e8f0;
+    }
+
+    .content-area .mermaid {
+      background: #090d16;
+      border: 1px solid var(--border-medium);
+      border-radius: 10px;
+      padding: 24px;
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: auto;
     }
 
     .content-area ul, .content-area ol {
@@ -1667,6 +1683,35 @@ python run_website.py
           openLightbox(img.src, img.alt || filename);
         });
       });
+
+      // Render Mermaid diagrams
+      const mermaidNodes = outputEl.querySelectorAll('pre code.language-mermaid');
+      if (mermaidNodes.length > 0 && window.mermaid) {
+        try {
+          mermaid.initialize({
+            startOnLoad: false,
+            theme: 'dark',
+            themeVariables: {
+              primaryColor: '#1e293b',
+              primaryTextColor: '#f8fafc',
+              primaryBorderColor: '#38bdf8',
+              lineColor: '#38bdf8',
+              secondaryColor: '#0f172a',
+              tertiaryColor: '#1e293b'
+            }
+          });
+          mermaidNodes.forEach((node) => {
+            const pre = node.parentElement;
+            const container = document.createElement('div');
+            container.className = 'mermaid';
+            container.textContent = node.textContent;
+            pre.parentNode.replaceChild(container, pre);
+          });
+          mermaid.run().catch((err) => console.log('Mermaid run error:', err));
+        } catch (e) {
+          console.log('Mermaid init error:', e);
+        }
+      }
 
       // Typeset MathJax equations
       if (window.MathJax && window.MathJax.typesetPromise) {
