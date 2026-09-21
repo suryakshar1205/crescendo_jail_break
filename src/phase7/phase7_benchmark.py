@@ -140,7 +140,7 @@ def run_phase7_benchmark(
         
         # Calibrate using Turn 1 Prompt
         first_turn = turns[0]
-        first_prompt = first_turn.get("prompt", "") if isinstance(first_turn, dict) else str(first_turn)
+        first_prompt: str = str(first_turn.get("prompt", "")) if isinstance(first_turn, dict) else str(first_turn)
         calib = calibrator.calibrate_threshold(first_prompt, drift_detector)
         calibrated_thresh = calib["calibrated_threshold"]
         domain = calib["classified_domain"]
