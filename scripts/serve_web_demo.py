@@ -325,14 +325,16 @@ class CrescendoHTTPRequestHandler(SimpleHTTPRequestHandler):
             self._send_json(200, {"status": "ok", "mtime": latest_mtime})
             return
 
-        if path == "/api/scenarios":
+        clean_path = path.rstrip("/").lower()
+        if "scenarios" in clean_path:
             scenarios = load_preset_scenarios()
             self._send_json(200, {"status": "success", "scenarios": scenarios})
             return
 
-        if path == "/api/status":
+        if "status" in clean_path:
             pipeline = get_pipeline()
             active_count = len(pipeline.active_sessions)
+
             config_info = {
                 "memory_decay": pipeline.memory_decay,
                 "history_window": pipeline.history_window,
@@ -437,7 +439,8 @@ class CrescendoHTTPRequestHandler(SimpleHTTPRequestHandler):
         except Exception:
             payload = {}
 
-        if path == "/api/reset":
+        path_clean = path.rstrip("/").lower()
+        if "reset" in path_clean or ("session_id" in payload and "prompt" not in payload):
             session_id = payload.get("session_id", "default_session")
             pipeline = get_pipeline()
             pipeline.reset_session(session_id)
@@ -445,7 +448,7 @@ class CrescendoHTTPRequestHandler(SimpleHTTPRequestHandler):
             self._send_json(200, {"status": "success", "message": f"Session {session_id} reset."})
             return
 
-        if path == "/api/turn":
+        if "turn" in path_clean or "prompt" in payload:
             session_id = payload.get("session_id", "default_session")
             user_prompt = payload.get("prompt", "").strip()
 

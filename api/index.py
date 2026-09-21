@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Vercel Serverless Function Entrypoint for Crescendo Defense Lab.
-Exposes both WSGI application callable `app` and BaseHTTPRequestHandler `handler`
-to be compatible with all Vercel Python runtimes.
+Exposes both WSGI application callable `app` and BaseHTTPRequestHandler `handler`.
+Designed to be 100% resilient to all Vercel path rewrite behaviors.
 """
 import os
 import sys
@@ -155,13 +155,72 @@ def generate_mock_assistant_response(prompt: str, decision: str, turn_number: in
         )
 
 
+def _execute_turn_logic(session_id: str, user_prompt: str) -> dict:
+    pipeline = get_pipeline()
+    result = pipeline.process_turn(session_id=session_id, user_prompt=user_prompt)
+    decision = result.get("decision", "ALLOW")
+    turn_number = result.get("turn_number", 1)
+    mock_response = generate_mock_assistant_response(user_prompt, decision, turn_number)
+
+    explain_obj = result.get("explanation", {})
+    explain_text = result.get("explain_text", explain_obj.get("text", "") if isinstance(explain_obj, dict) else str(explain_obj))
+
+    return {
+        "status": "success",
+        "session_id": session_id,
+        "turn_number": turn_number,
+        "prompt": user_prompt,
+        "decision": decision,
+        "response": mock_response,
+        "signals": {
+            "H": round(float(result.get("H", result.get("harmfulness", 0.0))), 4),
+            "E": round(float(result.get("E", result.get("escalation", 0.0))), 4),
+            "S": round(float(result.get("S", result.get("semantic_drift", 0.0))), 4),
+            "B": round(float(result.get("B", result.get("bypass", 0.0))), 4),
+            "CRS": round(float(result.get("crs", 0.0)), 4),
+            "C_t": round(float(result.get("contextual_risk", 0.0)), 4),
+            "T_t": round(float(result.get("threshold", 0.75)), 4),
+            "trend": round(float(result.get("trend", 0.0)), 4),
+            "persistence": round(float(result.get("persistence", 0.0)), 4)
+        },
+        "active_signals": result.get("active_signals", []),
+        "latency_ms": result.get("latency_breakdown", {}),
+        "explanation": explain_text,
+        "explanation_details": explain_obj if isinstance(explain_obj, dict) else {}
+    }
+
+
+def _get_status_dict() -> dict:
+    try:
+        pipeline = get_pipeline()
+        return {
+            "status": "healthy",
+            "version": "PRD-2.0-Production",
+            "mode": "Stateful Decoupled Defense Proxy",
+            "platform": "Vercel Serverless Edge",
+            "active_sessions": len(pipeline.active_sessions),
+            "config": {
+                "memory_decay": pipeline.memory_decay,
+                "history_window": pipeline.history_window,
+                "allow_threshold": pipeline.allow_threshold,
+                "warn_threshold": pipeline.warn_threshold,
+                "restrict_threshold": pipeline.restrict_threshold,
+                "release_margin": pipeline.release_margin,
+                "use_dynamic_mode": pipeline.use_dynamic_mode,
+                "risk_mode": pipeline.risk_mode.value
+            }
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 # =============================================================================
-# WSGI Application Callable (Vercel Python Runtime Standard Entrypoint)
+# WSGI Application Callable (Standard Vercel Runtime Entrypoint)
 # =============================================================================
 def app(environ, start_response):
     """Standard WSGI entrypoint for Vercel Python runtime."""
-    raw_path = environ.get("PATH_INFO", "")
-    path = raw_path.rstrip("/") if len(raw_path) > 1 else raw_path
+    raw_path = environ.get("PATH_INFO", "") or ""
+    path = raw_path.rstrip("/").lower()
     method = environ.get("REQUEST_METHOD", "GET").upper()
 
     cors_headers = [
@@ -180,45 +239,24 @@ def app(environ, start_response):
         return [b""]
 
     if method == "GET":
-        if path.endswith("/api/scenarios") or path == "/api/scenarios":
+        if "scenarios" in path:
             data = json.dumps({"status": "success", "scenarios": load_preset_scenarios()}).encode("utf-8")
             start_response("200 OK", cors_headers)
             return [data]
 
-        if path.endswith("/api/status") or path == "/api/status":
-            try:
-                pipeline = get_pipeline()
-                data = json.dumps({
-                    "status": "healthy",
-                    "version": "PRD-2.0-Production",
-                    "mode": "Stateful Decoupled Defense Proxy",
-                    "platform": "Vercel Serverless Edge",
-                    "active_sessions": len(pipeline.active_sessions),
-                    "config": {
-                        "memory_decay": pipeline.memory_decay,
-                        "history_window": pipeline.history_window,
-                        "allow_threshold": pipeline.allow_threshold,
-                        "warn_threshold": pipeline.warn_threshold,
-                        "restrict_threshold": pipeline.restrict_threshold,
-                        "release_margin": pipeline.release_margin,
-                        "use_dynamic_mode": pipeline.use_dynamic_mode,
-                        "risk_mode": pipeline.risk_mode.value
-                    }
-                }).encode("utf-8")
-                start_response("200 OK", cors_headers)
-                return [data]
-            except Exception as e:
-                err = json.dumps({"status": "error", "message": str(e)}).encode("utf-8")
-                start_response("500 Internal Server Error", cors_headers)
-                return [err]
+        if "status" in path:
+            data = json.dumps(_get_status_dict()).encode("utf-8")
+            start_response("200 OK", cors_headers)
+            return [data]
 
-        if path.endswith("/api/livereload") or path == "/api/livereload":
+        if "livereload" in path:
             data = json.dumps({"status": "ok", "mtime": time.time()}).encode("utf-8")
             start_response("200 OK", cors_headers)
             return [data]
 
-        data = json.dumps({"error": f"API endpoint {path} not found."}).encode("utf-8")
-        start_response("404 Not Found", cors_headers)
+        # Default fallback for GET
+        data = json.dumps(_get_status_dict()).encode("utf-8")
+        start_response("200 OK", cors_headers)
         return [data]
 
     if method == "POST":
@@ -233,7 +271,8 @@ def app(environ, start_response):
         except Exception:
             payload = {}
 
-        if path.endswith("/api/reset") or path == "/api/reset":
+        # Reset session check
+        if "reset" in path or ("session_id" in payload and "prompt" not in payload):
             session_id = payload.get("session_id", "default_session")
             try:
                 pipeline = get_pipeline()
@@ -246,7 +285,8 @@ def app(environ, start_response):
                 start_response("500 Internal Server Error", cors_headers)
                 return [err]
 
-        if path.endswith("/api/turn") or path == "/api/turn":
+        # Turn evaluation check (any POST with prompt or path containing turn)
+        if "turn" in path or "prompt" in payload or path == "" or path.endswith("index.py"):
             session_id = payload.get("session_id", "default_session")
             user_prompt = payload.get("prompt", "").strip()
 
@@ -256,38 +296,7 @@ def app(environ, start_response):
                 return [data]
 
             try:
-                pipeline = get_pipeline()
-                result = pipeline.process_turn(session_id=session_id, user_prompt=user_prompt)
-                decision = result.get("decision", "ALLOW")
-                turn_number = result.get("turn_number", 1)
-                mock_response = generate_mock_assistant_response(user_prompt, decision, turn_number)
-
-                explain_obj = result.get("explanation", {})
-                explain_text = result.get("explain_text", explain_obj.get("text", "") if isinstance(explain_obj, dict) else str(explain_obj))
-
-                response_payload = {
-                    "status": "success",
-                    "session_id": session_id,
-                    "turn_number": turn_number,
-                    "prompt": user_prompt,
-                    "decision": decision,
-                    "response": mock_response,
-                    "signals": {
-                        "H": round(float(result.get("H", result.get("harmfulness", 0.0))), 4),
-                        "E": round(float(result.get("E", result.get("escalation", 0.0))), 4),
-                        "S": round(float(result.get("S", result.get("semantic_drift", 0.0))), 4),
-                        "B": round(float(result.get("B", result.get("bypass", 0.0))), 4),
-                        "CRS": round(float(result.get("crs", 0.0)), 4),
-                        "C_t": round(float(result.get("contextual_risk", 0.0)), 4),
-                        "T_t": round(float(result.get("threshold", 0.75)), 4),
-                        "trend": round(float(result.get("trend", 0.0)), 4),
-                        "persistence": round(float(result.get("persistence", 0.0)), 4)
-                    },
-                    "active_signals": result.get("active_signals", []),
-                    "latency_ms": result.get("latency_breakdown", {}),
-                    "explanation": explain_text,
-                    "explanation_details": explain_obj if isinstance(explain_obj, dict) else {}
-                }
+                response_payload = _execute_turn_logic(session_id, user_prompt)
                 data = json.dumps(response_payload).encode("utf-8")
                 start_response("200 OK", cors_headers)
                 return [data]
@@ -296,7 +305,7 @@ def app(environ, start_response):
                 start_response("500 Internal Server Error", cors_headers)
                 return [err]
 
-        data = json.dumps({"error": f"API endpoint {path} not found."}).encode("utf-8")
+        data = json.dumps({"error": f"API endpoint {path} not recognized."}).encode("utf-8")
         start_response("404 Not Found", cors_headers)
         return [data]
 
@@ -305,7 +314,7 @@ def app(environ, start_response):
 
 
 # =============================================================================
-# BaseHTTPRequestHandler Class (Legacy / Fallback Vercel Handler)
+# BaseHTTPRequestHandler Class (Vercel Serverless Function Alternative)
 # =============================================================================
 class handler(BaseHTTPRequestHandler):
     """Vercel Serverless Function HTTP Request Handler."""
@@ -332,47 +341,25 @@ class handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
-        path = parsed.path
+        path = parsed.path.rstrip("/").lower()
 
-        if path.endswith("/api/scenarios") or path == "/api/scenarios":
-            scenarios = load_preset_scenarios()
-            self._send_json(200, {"status": "success", "scenarios": scenarios})
+        if "scenarios" in path:
+            self._send_json(200, {"status": "success", "scenarios": load_preset_scenarios()})
             return
 
-        if path.endswith("/api/status") or path == "/api/status":
-            try:
-                pipeline = get_pipeline()
-                config_info = {
-                    "memory_decay": pipeline.memory_decay,
-                    "history_window": pipeline.history_window,
-                    "allow_threshold": pipeline.allow_threshold,
-                    "warn_threshold": pipeline.warn_threshold,
-                    "restrict_threshold": pipeline.restrict_threshold,
-                    "release_margin": pipeline.release_margin,
-                    "use_dynamic_mode": pipeline.use_dynamic_mode,
-                    "risk_mode": pipeline.risk_mode.value
-                }
-                self._send_json(200, {
-                    "status": "healthy",
-                    "version": "PRD-2.0-Production",
-                    "mode": "Stateful Decoupled Defense Proxy",
-                    "platform": "Vercel Serverless Edge",
-                    "active_sessions": len(pipeline.active_sessions),
-                    "config": config_info
-                })
-            except Exception as e:
-                self._send_json(500, {"status": "error", "message": str(e)})
+        if "status" in path or path == "" or path.endswith("index.py") or path == "/api":
+            self._send_json(200, _get_status_dict())
             return
 
-        if path.endswith("/api/livereload") or path == "/api/livereload":
+        if "livereload" in path:
             self._send_json(200, {"status": "ok", "mtime": time.time()})
             return
 
-        self._send_json(404, {"error": f"API endpoint {path} not found."})
+        self._send_json(200, _get_status_dict())
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
-        path = parsed.path
+        path = parsed.path.rstrip("/").lower()
 
         content_length = int(self.headers.get("Content-Length", 0))
         post_data = self.rfile.read(content_length).decode("utf-8") if content_length > 0 else "{}"
@@ -382,7 +369,7 @@ class handler(BaseHTTPRequestHandler):
         except Exception:
             payload = {}
 
-        if path.endswith("/api/reset") or path == "/api/reset":
+        if "reset" in path or ("session_id" in payload and "prompt" not in payload):
             session_id = payload.get("session_id", "default_session")
             try:
                 pipeline = get_pipeline()
@@ -392,7 +379,7 @@ class handler(BaseHTTPRequestHandler):
                 self._send_json(500, {"error": str(e)})
             return
 
-        if path.endswith("/api/turn") or path == "/api/turn":
+        if "turn" in path or "prompt" in payload or path == "" or path.endswith("index.py") or path == "/api":
             session_id = payload.get("session_id", "default_session")
             user_prompt = payload.get("prompt", "").strip()
 
@@ -401,41 +388,10 @@ class handler(BaseHTTPRequestHandler):
                 return
 
             try:
-                pipeline = get_pipeline()
-                result = pipeline.process_turn(session_id=session_id, user_prompt=user_prompt)
-                decision = result.get("decision", "ALLOW")
-                turn_number = result.get("turn_number", 1)
-                mock_response = generate_mock_assistant_response(user_prompt, decision, turn_number)
-
-                explain_obj = result.get("explanation", {})
-                explain_text = result.get("explain_text", explain_obj.get("text", "") if isinstance(explain_obj, dict) else str(explain_obj))
-
-                response_payload = {
-                    "status": "success",
-                    "session_id": session_id,
-                    "turn_number": turn_number,
-                    "prompt": user_prompt,
-                    "decision": decision,
-                    "response": mock_response,
-                    "signals": {
-                        "H": round(float(result.get("H", result.get("harmfulness", 0.0))), 4),
-                        "E": round(float(result.get("E", result.get("escalation", 0.0))), 4),
-                        "S": round(float(result.get("S", result.get("semantic_drift", 0.0))), 4),
-                        "B": round(float(result.get("B", result.get("bypass", 0.0))), 4),
-                        "CRS": round(float(result.get("crs", 0.0)), 4),
-                        "C_t": round(float(result.get("contextual_risk", 0.0)), 4),
-                        "T_t": round(float(result.get("threshold", 0.75)), 4),
-                        "trend": round(float(result.get("trend", 0.0)), 4),
-                        "persistence": round(float(result.get("persistence", 0.0)), 4)
-                    },
-                    "active_signals": result.get("active_signals", []),
-                    "latency_ms": result.get("latency_breakdown", {}),
-                    "explanation": explain_text,
-                    "explanation_details": explain_obj if isinstance(explain_obj, dict) else {}
-                }
+                response_payload = _execute_turn_logic(session_id, user_prompt)
                 self._send_json(200, response_payload)
             except Exception as e:
                 self._send_json(500, {"error": str(e)})
             return
 
-        self._send_json(404, {"error": f"API endpoint {path} not found."})
+        self._send_json(404, {"error": f"API endpoint {path} not recognized."})
