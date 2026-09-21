@@ -1,6 +1,6 @@
 import logging
 import numpy as np
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +9,7 @@ class DynamicThresholdCalibrator:
     Calibrates the defense threshold dynamically based on the semantic domain of the conversation's first turn.
     Helps maintain utility (low FPR) on technical tasks (e.g., coding) while keeping high security (low ASR) on others.
     """
-    def __init__(self, base_threshold: float = 0.92, domain_offsets: Dict[str, float] = None):
+    def __init__(self, base_threshold: float = 0.92, domain_offsets: Optional[Dict[str, float]] = None):
         self.base_threshold = base_threshold
         # Predefined domain category anchors representing common user intents
         self.domain_anchors = {
@@ -63,7 +63,7 @@ class DynamicThresholdCalibrator:
             similarities[domain] = sim
             
         # Classify as the domain with the highest similarity
-        classified_domain = max(similarities, key=similarities.get)
+        classified_domain = max(similarities, key=lambda d: similarities[d])
         max_similarity = similarities[classified_domain]
         
         offset = self.domain_offsets.get(classified_domain, 0.0)

@@ -139,7 +139,8 @@ def run_phase7_benchmark(
             continue
         
         # Calibrate using Turn 1 Prompt
-        first_prompt = turns[0].get("prompt", "")
+        first_turn = turns[0]
+        first_prompt = first_turn.get("prompt", "") if isinstance(first_turn, dict) else str(first_turn)
         calib = calibrator.calibrate_threshold(first_prompt, drift_detector)
         calibrated_thresh = calib["calibrated_threshold"]
         domain = calib["classified_domain"]
@@ -151,7 +152,12 @@ def run_phase7_benchmark(
         sess_records = []
         for i, turn in enumerate(turns):
             total_turns += 1
-            risk = turn.get("risk_score", 0.0)
+            if isinstance(turn, dict):
+                risk = float(turn.get("risk_score", 0.0))
+                p_text = str(turn.get("prompt", ""))
+            else:
+                risk = 0.0
+                p_text = str(turn)
             
             # Static Thresholding Block Decision (base threshold)
             flagged_static = risk > base_threshold
@@ -165,7 +171,7 @@ def run_phase7_benchmark(
 
             sess_records.append({
                 "turn": i + 1,
-                "prompt": turn.get("prompt"),
+                "prompt": p_text,
                 "risk_score": risk,
                 "flagged_static": flagged_static,
                 "flagged_dynamic": flagged_dynamic

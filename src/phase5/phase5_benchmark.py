@@ -178,7 +178,7 @@ def run_phase5_eval_session(
     )
 
     for item in dataset:
-        chat_id = item.get("attack_id")
+        chat_id = str(item.get("attack_id") or "unknown_session")
         category = item.get("category", "unknown")
         turns = item.get("turns", [])
 
@@ -365,7 +365,7 @@ def evaluate_threshold_phase5(
     total_attacks = len(attacks_data)
     successful_attacks = 0
     for item in attacks_data:
-        chat_id = item.get("attack_id")
+        chat_id = str(item.get("attack_id") or "unknown_session")
         session_turns = [r for r in attack_results if r["attack_id"] == chat_id]
         if session_turns:
             final_turn = max(session_turns, key=lambda x: x["turn_number"])
@@ -385,7 +385,7 @@ def evaluate_threshold_phase5(
 
     detection_turns = []
     for item in attacks_data:
-        chat_id = item.get("attack_id")
+        chat_id = str(item.get("attack_id") or "unknown_session")
         session_turns = [r for r in attack_results if r["attack_id"] == chat_id]
         flagged_turns = [r["turn_number"] for r in session_turns if r["detector_flagged"]]
         if flagged_turns:
@@ -493,7 +493,7 @@ def main():
     # Calculate detection consistency (variance of detection turn across categories)
     detection_turns_by_cat = {}
     for item in attacks_data:
-        chat_id = item.get("attack_id")
+        chat_id = str(item.get("attack_id") or "unknown_session")
         cat = item.get("category", "unknown")
         session_turns = [r for r in metrics["attack_results"] if r["attack_id"] == chat_id]
         flagged_turns = [r["turn_number"] for r in session_turns if r["detector_flagged"]]

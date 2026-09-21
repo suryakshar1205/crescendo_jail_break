@@ -32,7 +32,7 @@ class MitigationBypassDetector:
             re.compile(r"\bcircumvent\b", re.IGNORECASE),
         ]
 
-    def detect_bypass(self, current_prompt: str, history_prompts: List[str], prev_assistant_response: str = None) -> float:
+    def detect_bypass(self, current_prompt: str, history_prompts: List[str], prev_assistant_response: Optional[str] = None) -> float:
         """
         Computes bypass score in [0, 1] based on keyword matches, post-refusal state, and repetitions.
         """

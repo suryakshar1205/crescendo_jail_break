@@ -112,7 +112,7 @@ class RefusalBypassAnalyzer:
         bypass_det_score = float(self.bypass_detector.detect_bypass(
             latest_prompt,
             history[:-1] if len(history) > 1 else [],
-            prev_assistant_response=prev_assistant_response
+            prev_assistant_response=prev_assistant_response or ""
         ))
         if is_post_refusal:
             detected_categories["B1_repeated_after_refusal"] = max(0.5, bypass_det_score)

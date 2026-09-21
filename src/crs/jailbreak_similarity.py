@@ -46,7 +46,7 @@ class JailbreakSimilarityAnalyzer:
         self.indexed_texts: List[str] = []
         self.indexed_metadata: List[Dict[str, Any]] = []
         self.embeddings_matrix: Optional[np.ndarray] = None
-        self.faiss_index = None
+        self.faiss_index: Any = None
         self.dimension = 384  # all-MiniLM-L6-v2 embedding dimension
         self.backend = "faiss" if FAISS_AVAILABLE else "numpy"
 
@@ -143,7 +143,7 @@ class JailbreakSimilarityAnalyzer:
             self.embeddings_matrix = np.array(vectors, dtype=np.float32)
             if FAISS_AVAILABLE:
                 self.faiss_index = faiss.IndexFlatIP(self.dimension)
-                self.faiss_index.add(self.embeddings_matrix)
+                getattr(self.faiss_index, "add")(self.embeddings_matrix)
                 self.backend = "faiss"
                 logger.info(f"Built FAISS IndexFlatIP with {self.faiss_index.ntotal} vectors.")
             else:

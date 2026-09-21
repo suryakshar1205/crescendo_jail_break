@@ -14,7 +14,7 @@ Reports explicit execution status without silent fallbacks:
 import os
 import logging
 from enum import Enum
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 from src.core.evaluator import BaseEvaluator, RuleBasedEvaluator
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class LLMJudgeEvaluator(BaseEvaluator):
         self,
         model_id: str = "meta-llama/Llama-Guard-3-1B",
         device: str = "cpu",
-        mode: str = "llama_guard",
+        mode: Union[str, JudgeMode] = "llama_guard",
         allow_fallback: bool = True,
         mock: bool = False
     ):
@@ -49,9 +49,9 @@ class LLMJudgeEvaluator(BaseEvaluator):
             self.mode = JudgeMode.MOCK
         elif isinstance(mode, JudgeMode):
             self.mode = mode
-        elif str(mode).lower() in ["rule", "rules", "heuristic"]:
+        elif mode.lower() in ["rule", "rules", "heuristic"]:
             self.mode = JudgeMode.RULE
-        elif str(mode).lower() in ["mock", "test"]:
+        elif mode.lower() in ["mock", "test"]:
             self.mode = JudgeMode.MOCK
         else:
             self.mode = JudgeMode.LLAMA_GUARD

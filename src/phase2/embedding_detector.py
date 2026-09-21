@@ -6,7 +6,7 @@ os.environ["TRANSFORMERS_NO_TF"] = "1"
 import sys
 import numpy as np
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class EmbeddingDriftDetector:
         model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
         similarity_metric: str = "cosine",
         window_size: int = 3,
-        weights: Dict[str, float] = None
+        weights: Optional[Dict[str, float]] = None
     ):
         self.model_name = model_name
         self.similarity_metric = similarity_metric

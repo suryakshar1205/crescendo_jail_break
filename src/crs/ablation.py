@@ -63,9 +63,10 @@ def run_prd_ablation_study(
     # Run for each configuration
     for cfg in ablation_configs:
         cfg_name = cfg["name"]
-        weights = cfg["weights"]
-        no_mem = cfg.get("no_memory", False)
-        fixed_th = cfg.get("fixed_threshold", False)
+        raw_weights = cfg.get("weights")
+        weights = raw_weights if isinstance(raw_weights, dict) else None
+        no_mem = bool(cfg.get("no_memory", False))
+        fixed_th = bool(cfg.get("fixed_threshold", False))
         logger.info(f"Running Ablation: {cfg_name}...")
 
         # Update pipeline configuration

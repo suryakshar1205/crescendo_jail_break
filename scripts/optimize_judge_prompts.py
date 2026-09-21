@@ -110,8 +110,8 @@ def run_prompt_optimization(results_json: str, output_path: str, mock: bool):
     logger.info("=" * 60)
 
     for name, data in PROMPT_TEMPLATES.items():
-        y_rules = [t["label"] for t in turns]
-        y_judge = []
+        y_rules: List[int] = [int(t["label"]) for t in turns]
+        y_judge: List[int] = []
         
         error_rate = 0.08 if name == "standard" else (0.04 if name == "chain_of_thought" else 0.01)
         

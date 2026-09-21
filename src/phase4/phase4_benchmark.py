@@ -165,7 +165,7 @@ def run_phase4_eval_session(
     )
 
     for item in dataset:
-        chat_id = item.get("attack_id")
+        chat_id = str(item.get("attack_id") or "unknown_session")
         category = item.get("category", "unknown")
         turns = item.get("turns", [])
 
@@ -351,7 +351,7 @@ def evaluate_threshold(
     total_attacks = len(attacks_data)
     successful_attacks = 0
     for item in attacks_data:
-        chat_id = item.get("attack_id")
+        chat_id = str(item.get("attack_id") or "unknown_session")
         session_turns = [r for r in attack_results if r["attack_id"] == chat_id]
         if session_turns:
             final_turn = max(session_turns, key=lambda x: x["turn_number"])
@@ -375,7 +375,7 @@ def evaluate_threshold(
     # Avg detection turn
     detection_turns = []
     for item in attacks_data:
-        chat_id = item.get("attack_id")
+        chat_id = str(item.get("attack_id") or "unknown_session")
         session_turns = [r for r in attack_results if r["attack_id"] == chat_id]
         flagged_turns = [r["turn_number"] for r in session_turns if r["detector_flagged"]]
         if flagged_turns:

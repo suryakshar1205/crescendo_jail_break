@@ -20,7 +20,7 @@ class RiskMode(str, Enum):
     LEGACY = "legacy"        # Phase 3 historical baseline: 0.70S + 0.30B
 
 
-class DetectorOutput(TypedDict):
+class DetectorOutput(TypedDict, total=False):
     """
     Standardized return format for all security analyzers (H, E, S, B).
     Ensures consistent explainability, logging, and downstream consumption.
@@ -30,6 +30,11 @@ class DetectorOutput(TypedDict):
     signals: List[str]            # Active behavioral/semantic trigger tags
     explanation: str              # Concise human-readable explanation of why score was generated
     raw_details: Dict[str, Any]   # Underlying layer-specific numerical indicators
+    harmfulness_score: float
+    high_severity_match: bool
+    intent_escalation_score: float
+    refusal_bypass_score: float
+    is_post_refusal: bool
 
 
 class TurnDefenseResult(TypedDict):
