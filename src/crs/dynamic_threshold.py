@@ -120,7 +120,7 @@ class DynamicThresholdCalibrator:
                 d: drift_detector.cosine_similarity(prompt_emb, a_emb)
                 for d, a_emb in self.anchor_embeddings.items()
             }
-            best_domain = max(sims, key=sims.get)
+            best_domain = max(sims, key=lambda d: sims[d])
             offset = self.domain_offsets.get(best_domain, 0.0)
             return {
                 "calibrated_threshold": round(self.base_threshold + offset, 4),
