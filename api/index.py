@@ -249,6 +249,26 @@ def app(environ, start_response):
             start_response("200 OK", cors_headers)
             return [data]
 
+        if "turn" in path:
+            data = json.dumps({
+                "status": "online",
+                "endpoint": "/api/turn",
+                "method": "POST",
+                "description": "Crescendo Defense Pipeline Turn Evaluation. Submit a POST request with JSON: {'session_id': '...', 'prompt': '...'}"
+            }).encode("utf-8")
+            start_response("200 OK", cors_headers)
+            return [data]
+
+        if "reset" in path:
+            data = json.dumps({
+                "status": "online",
+                "endpoint": "/api/reset",
+                "method": "POST",
+                "description": "Reset session memory. Submit a POST request with JSON: {'session_id': '...'}"
+            }).encode("utf-8")
+            start_response("200 OK", cors_headers)
+            return [data]
+
         if "livereload" in path:
             data = json.dumps({"status": "ok", "mtime": time.time()}).encode("utf-8")
             start_response("200 OK", cors_headers)
@@ -353,6 +373,24 @@ class handler(BaseHTTPRequestHandler):
 
         if "livereload" in path:
             self._send_json(200, {"status": "ok", "mtime": time.time()})
+            return
+
+        if "turn" in path:
+            self._send_json(200, {
+                "status": "online",
+                "endpoint": "/api/turn",
+                "method": "POST",
+                "description": "Crescendo Defense Pipeline Turn Evaluation. Submit a POST request with JSON: {'session_id': '...', 'prompt': '...'}"
+            })
+            return
+
+        if "reset" in path:
+            self._send_json(200, {
+                "status": "online",
+                "endpoint": "/api/reset",
+                "method": "POST",
+                "description": "Reset session memory. Submit a POST request with JSON: {'session_id': '...'}"
+            })
             return
 
         self._send_json(200, _get_status_dict())

@@ -353,6 +353,24 @@ class CrescendoHTTPRequestHandler(SimpleHTTPRequestHandler):
             self._send_json(200, {"status": "healthy", "config": config_info})
             return
 
+        if "turn" in clean_path:
+            self._send_json(200, {
+                "status": "online",
+                "endpoint": "/api/turn",
+                "method": "POST",
+                "description": "Crescendo Defense Pipeline Turn Evaluation. Submit a POST request with JSON: {'session_id': '...', 'prompt': '...'}"
+            })
+            return
+
+        if "reset" in clean_path:
+            self._send_json(200, {
+                "status": "online",
+                "endpoint": "/api/reset",
+                "method": "POST",
+                "description": "Reset session memory. Submit a POST request with JSON: {'session_id': '...'}"
+            })
+            return
+
         # Root route: explicitly serve index.html with UTF-8 encoding
         if path in ("/", ""):
             index_path = os.path.join(PROJECT_ROOT, "web", "index.html")
@@ -418,7 +436,10 @@ class CrescendoHTTPRequestHandler(SimpleHTTPRequestHandler):
         web_dir = os.path.join(PROJECT_ROOT, "web")
         rel_path = path.lstrip("/").replace("/", os.sep)
         target_file = os.path.join(web_dir, rel_path)
-        if not os.path.exists(target_file) and not path.startswith("/api/"):
+        if not os.path.exists(target_file):
+            if path.startswith("/api/"):
+                self._send_json(404, {"error": f"API endpoint '{path}' not found."})
+                return
             self.send_response(302)
             self.send_header("Location", "/")
             self.end_headers()
