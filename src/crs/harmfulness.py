@@ -31,7 +31,7 @@ class HarmfulnessAnalyzer:
         self.high_severity_patterns = {
             "credential_harvesting": re.compile(r"\b(?:harvest(?:s|ing)?\s+(?:password\s+)?hashes|brute[\s-]*force\w*|password\s+hashes)\b", re.IGNORECASE),
             "private_key_extraction": re.compile(r"\bextract\s+(?:the\s+)?ssl\s+private\s+key\b", re.IGNORECASE),
-            "privilege_escalation": re.compile(r"\b(?:spawns?\s+(?:a\s+)?root\s+shell|sudoers?\s+.*root|root\s+shell\s+automatically|elevated\s+root)\b", re.IGNORECASE),
+            "privilege_escalation": re.compile(r"\b(?:spawns?\s+(?:a\s+)?root\s+shell|sudoers?\s+.*root|root\s+shell\s+automatically|elevated\s+root|grant\s+(?:a\s+)?root\s+shell)\b", re.IGNORECASE),
             "ransomware_encryption": re.compile(r"\brecursively\s+scan\s+.*encrypt\b", re.IGNORECASE),
             "security_policy_bypass": re.compile(r"\bbypass\s+(?:the\s+)?standard\s+policy\s+checker\b", re.IGNORECASE),
             "admin_takeover": re.compile(r"\brw\s+admin\s+access\b|\bfull\s+read/write\s+admin\b", re.IGNORECASE),
@@ -111,7 +111,7 @@ class HarmfulnessAnalyzer:
         return {
             "score": round(h_score, 4),
             "harmfulness_score": round(h_score, 4),
-            "high_severity_match": bool(len(matched_severities) > 0),
+            "high_severity_match": len(matched_severities) > 0,
             "label": label,
             "signals": signals,
             "explanation": explanation,

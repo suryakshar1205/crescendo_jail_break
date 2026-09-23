@@ -15,6 +15,10 @@ class EmbeddingDriftDetector:
     Refined Sentence-Transformer embedding based semantic drift detector.
     Combines Anchor Drift, Local Drift, and Escalation Velocity with weighted risk scoring.
     """
+    _SHARED_MODEL = None
+    _SHARED_FALLBACK = False
+    _INIT_ATTEMPTED = False
+
     def __init__(
         self,
         model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
@@ -26,9 +30,9 @@ class EmbeddingDriftDetector:
         self.similarity_metric = similarity_metric
         self.window_size = window_size
         self.weights = weights or {"anchor_drift": 0.60, "local_drift": 0.25, "velocity": 0.15}
-        self.model = None
+        self.model = EmbeddingDriftDetector._SHARED_MODEL
         self.embedding_cache = {}
-        self._fallback_mode = False
+        self._fallback_mode = EmbeddingDriftDetector._SHARED_FALLBACK
 
     def _deterministic_embedding(self, text: str) -> np.ndarray:
         """Generates deterministic unit-normalized 384-d vector when model weights cannot load."""
@@ -42,18 +46,38 @@ class EmbeddingDriftDetector:
     def _lazy_init(self):
         """
         Lazily initializes the sentence-transformers model with graceful fallback on memory exhaustion.
+        Reuses class-level shared model or fallback across instances.
         """
-        if self.model is None and not self._fallback_mode:
-            try:
-                logger.info(f"Initializing SentenceTransformer model: {self.model_name}")
-                from sentence_transformers import SentenceTransformer
-                import torch
-                device = "cpu"
-                self.model = SentenceTransformer(self.model_name, device=device)
-                logger.info(f"SentenceTransformer loaded on device: {device}")
-            except Exception as e:
-                logger.warning(f"SentenceTransformer load failed ({e}). Using deterministic embedding fallback.")
-                self._fallback_mode = True
+        if os.environ.get("USE_DETERMINISTIC_EMBEDDING", "0") == "1":
+            EmbeddingDriftDetector._SHARED_MODEL = None
+            EmbeddingDriftDetector._SHARED_FALLBACK = True
+            EmbeddingDriftDetector._INIT_ATTEMPTED = True
+            self.model = None
+            self._fallback_mode = True
+            return
+
+        if EmbeddingDriftDetector._INIT_ATTEMPTED:
+            self.model = EmbeddingDriftDetector._SHARED_MODEL
+            self._fallback_mode = EmbeddingDriftDetector._SHARED_FALLBACK
+            return
+
+        EmbeddingDriftDetector._INIT_ATTEMPTED = True
+        try:
+            logger.info(f"Initializing SentenceTransformer model: {self.model_name}")
+            from sentence_transformers import SentenceTransformer
+            import torch
+            device = "cpu"
+            self.model = SentenceTransformer(self.model_name, device=device)
+            EmbeddingDriftDetector._SHARED_MODEL = self.model
+            EmbeddingDriftDetector._SHARED_FALLBACK = False
+            self._fallback_mode = False
+            logger.info(f"SentenceTransformer loaded on device: {device}")
+        except Exception as e:
+            logger.warning(f"SentenceTransformer load failed ({e}). Using deterministic embedding fallback.")
+            EmbeddingDriftDetector._SHARED_MODEL = None
+            EmbeddingDriftDetector._SHARED_FALLBACK = True
+            self.model = None
+            self._fallback_mode = True
 
     def get_embedding(self, text: str) -> np.ndarray:
         """

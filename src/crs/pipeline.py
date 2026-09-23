@@ -45,6 +45,18 @@ from .resource_profiler import ResourceProfiler
 logger = logging.getLogger(__name__)
 
 
+class TurnResult(dict):
+    """Result object supporting both dict key and attribute access with to_dict()."""
+    def __getattr__(self, name: str) -> Any:
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(f"'TurnResult' has no attribute '{name}'")
+
+    def to_dict(self) -> Dict[str, Any]:
+        return dict(self)
+
+
 class CrescendoPRDPipeline:
     """
     Canonical End-to-End Defense Pipeline.
@@ -359,6 +371,10 @@ class CrescendoPRDPipeline:
                 "S": s_out,
                 "B": b_out
             },
+            "action": dec_res["action"],
+            "scores": {"H": h_score, "E": e_score, "S": s_score, "B": b_score},
+            "hysteresis_applied": dec_res.get("hysteresis_applied", False),
+            "hysteresis_active": dec_res.get("hysteresis_applied", False),
             "latency": latency_breakdown,
             "latency_ms": latency_breakdown,
             "latency_breakdown": latency_breakdown,
@@ -368,6 +384,11 @@ class CrescendoPRDPipeline:
             "explain_text": explain_text
         }
 
+        result_obj = TurnResult(turn_record)
         # Persist to session history
-        self.active_sessions[session_id].append(turn_record)
-        return turn_record
+        self.active_sessions[session_id].append(result_obj)
+        return result_obj
+
+    # Canonical alias for research suites and benchmark runners
+    evaluate_turn = process_turn
+
