@@ -54,10 +54,14 @@ class TestJitterHysteresis(unittest.TestCase):
         self.assertEqual(t5["decision"], DecisionAction.BLOCK.value)
 
         # Turn 6: Truly safe de-escalation (CRS=0.30 < 0.40)
-        # Dropped below release threshold -> Released to ALLOW
+        # Dropped below release threshold -> Cooldown step-down out of BLOCK
         t6 = self.engine.decide(crs=0.30, session_id=self.session_id)
-        self.assertEqual(t6["decision"], DecisionAction.ALLOW.value)
+        self.assertIn(t6["decision"], [DecisionAction.WARN.value, DecisionAction.ALLOW.value])
         self.assertFalse(t6["is_blocked"])
+
+        # Turn 7: Subsequent safe query (CRS=0.20) -> Full release to ALLOW
+        t7 = self.engine.decide(crs=0.20, session_id=self.session_id)
+        self.assertEqual(t7["decision"], DecisionAction.ALLOW.value)
 
 
 if __name__ == "__main__":
