@@ -151,6 +151,7 @@ def run_weight_simplex_sweep() -> List[Dict[str, Any]]:
 
     for cfg in weight_configs:
         w = cfg["weights"]
+        assert isinstance(w, dict)
         pipeline = CrescendoPRDPipeline(config_path=None)
         pipeline.risk_engine.custom_weights = w
 
@@ -201,9 +202,9 @@ def run_dynamic_threshold_sweep() -> List[Dict[str, Any]]:
 
     for v in variations:
         pipeline = CrescendoPRDPipeline(use_dynamic_mode=True)
-        pipeline.dynamic_calibrator.alpha = v["alpha"]
-        pipeline.dynamic_calibrator.beta = v["beta"]
-        pipeline.dynamic_calibrator.gamma = v["gamma"]
+        pipeline.dynamic_calibrator.alpha = float(v["alpha"])
+        pipeline.dynamic_calibrator.beta = float(v["beta"])
+        pipeline.dynamic_calibrator.gamma = float(v["gamma"])
 
         sid = f"dyn_{v['label']}"
         threshold_progression = []
@@ -345,9 +346,11 @@ def run_cross_model_benchmark() -> List[Dict[str, Any]]:
         {"model": "GPT-4o (Proxy Dialogue Logs)", "baseline_asr": 68.0, "protected_asr": 1.5, "mitigation_turn": 2.8}
     ]
     for m in models:
-        reduction = round(((m["baseline_asr"] - m["protected_asr"]) / m["baseline_asr"]) * 100.0, 1)
+        b_asr = float(m["baseline_asr"])
+        p_asr = float(m["protected_asr"])
+        reduction = round(((b_asr - p_asr) / b_asr) * 100.0, 1)
         m["asr_reduction_pct"] = reduction
-        print(f"  {m['model']:30} | Baseline ASR={m['baseline_asr']}% -> Protected ASR={m['protected_asr']}% (Reduction: {reduction}%) | Avg Intervene Turn={m['mitigation_turn']}")
+        print(f"  {m['model']:30} | Baseline ASR={b_asr}% -> Protected ASR={p_asr}% (Reduction: {reduction}%) | Avg Intervene Turn={m['mitigation_turn']}")
     return models
 
 
